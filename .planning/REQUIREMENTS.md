@@ -80,41 +80,41 @@ Deferred to future milestone. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MECH-01 | — | Pending |
-| MECH-02 | — | Pending |
-| MECH-03 | — | Pending |
-| MECH-04 | — | Pending |
-| MECH-05 | — | Pending |
-| MECH-06 | — | Pending |
-| MECH-07 | — | Pending |
-| MECH-08 | — | Pending |
-| MECH-09 | — | Pending |
-| MECH-10 | — | Pending |
-| MECH-11 | — | Pending |
-| MECH-12 | — | Pending |
-| MECH-13 | — | Pending |
-| MECH-14 | — | Pending |
-| MECH-15 | — | Pending |
-| MECH-16 | — | Pending |
-| VIZP-01 | — | Pending |
-| VIZP-02 | — | Pending |
-| VIZP-03 | — | Pending |
-| VIZP-04 | — | Pending |
-| VIZP-05 | — | Pending |
-| VIZP-06 | — | Pending |
-| VIZP-07 | — | Pending |
-| VIZP-08 | — | Pending |
-| INFR-01 | — | Pending |
-| INFR-02 | — | Pending |
-| INFR-03 | — | Pending |
-| INFR-04 | — | Pending |
-| INFR-05 | — | Pending |
+| MECH-01 | Phase 1 | Pending |
+| MECH-02 | Phase 1 | Pending |
+| MECH-03 | Phase 1 | Pending |
+| MECH-04 | Phase 3 | Pending |
+| MECH-05 | Phase 2 | Pending |
+| MECH-06 | Phase 2 | Pending |
+| MECH-07 | Phase 4 | Pending |
+| MECH-08 | Phase 4 | Pending |
+| MECH-09 | Phase 5 | Pending |
+| MECH-10 | Phase 5 | Pending |
+| MECH-11 | Phase 5 | Pending |
+| MECH-12 | Phase 4 | Pending |
+| MECH-13 | Phase 5 | Pending |
+| MECH-14 | Phase 5 | Pending |
+| MECH-15 | Phase 4 | Pending |
+| MECH-16 | Phase 5 | Pending |
+| VIZP-01 | Phase 6 | Pending |
+| VIZP-02 | Phase 6 | Pending |
+| VIZP-03 | Phase 6 | Pending |
+| VIZP-04 | Phase 6 | Pending |
+| VIZP-05 | Phase 6 | Pending |
+| VIZP-06 | Phase 6 | Pending |
+| VIZP-07 | Phase 6 | Pending |
+| VIZP-08 | Phase 6 | Pending |
+| INFR-01 | Phase 1 | Pending |
+| INFR-02 | Phase 1 | Pending |
+| INFR-03 | Phase 1 | Pending |
+| INFR-04 | Phase 4 | Pending |
+| INFR-05 | Phase 3 | Pending |
 
 **Coverage:**
 - v1 requirements: 29 total
-- Mapped to phases: 0
-- Unmapped: 29
+- Mapped to phases: 29
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-17*
-*Last updated: 2026-02-17 after initial definition*
+*Last updated: 2026-02-17 after roadmap creation*
