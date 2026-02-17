@@ -1,0 +1,29 @@
+ KidneyQuest - Project Summary
+
+  What it is: A browser-based side-scrolling jump game (think Chrome's dinosaur game) starring the CeRKiD zebra mascot.  
+  The zebra runs through a kidney-themed world collecting genes and avoiding obstacles.
+
+  Context: CeRKiD = Center for Rare Kidney Diseases at Charite Berlin (Halbritter Lab). The zebra is the rare disease    
+  mascot (because rare diseases are "zebras, not horses").
+
+  Purpose: Teaching tool for the AI-Teachathon workshop. Participants practice the full Git workflow (fork, clone,       
+  branch, code with AI, commit, push, PR) on a real project.
+
+  Tech stack: Deliberately simple - vanilla HTML5 Canvas, vanilla JavaScript, zero dependencies. Just open index.html in 
+  a browser and it runs. No build tools, no frameworks.
+
+  Repo: github.com/berntpopp/KidneyQuest
+
+  Gameplay: Side-scrolling runner where the zebra character jumps over obstacles and collects genes. Scoring increases   
+  the longer you survive / more genes you collect.
+
+  Planned features / issue ideas for workshop participants:
+  - Adding obstacles
+  - Improving jump physics
+  - Creating new backgrounds (cloud parallax)
+  - Adding a score counter
+  - Scoreboard displaying genes collected
+  - Obstacle collision detection
+
+  Key constraint: Must stay vanilla JS - no libraries - so non-technical workshop participants can understand the code   
+  and modify it with AI assistance.
