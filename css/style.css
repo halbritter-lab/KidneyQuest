@@ -1,0 +1,36 @@
+:root {
+    --bg-color: #1a1a1a;
+    --canvas-bg: #000;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#game-container {
+    position: relative;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+canvas {
+    background-color: var(--canvas-bg);
+    display: block;
+    /* Canvas size will be set by JS, but max-width ensures responsiveness */
+    max-width: 100%;
+    max-height: 100%;
+}
