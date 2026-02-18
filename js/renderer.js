@@ -447,6 +447,31 @@ export function drawWithShake(ctx, config, deathTimer, drawFn) {
 }
 
 // ---------------------------------------------------------------------------
+// Stomp ring drawing (Phase 6)
+// ---------------------------------------------------------------------------
+
+/**
+ * Draws expanding white ring effects at stomp-kill locations.
+ * Each ring grows in radius and fades out over its lifetime.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Array} stompRings - Array of ring objects ({x, y, radius, maxRadius, alpha})
+ */
+export function drawStompRings(ctx, stompRings) {
+  for (const ring of stompRings) {
+    if (ring.alpha <= 0) continue;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, ring.alpha);
+    ctx.strokeStyle = ring.color || '#FFFFFF';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(Math.round(ring.x), Math.round(ring.y), ring.radius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Obstacle drawing
 // ---------------------------------------------------------------------------
 

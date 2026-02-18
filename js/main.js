@@ -7,6 +7,7 @@ import {
   drawGround, drawPlayer, drawObstacles, drawGenes,
   drawCountdown, drawPauseOverlay, drawGameOver, drawHUD,
   drawWithShake, drawPopups, drawGeneFlash, drawGameOverScreen,
+  drawStompRings,
 } from './renderer.js';
 import { setupInput } from './input.js';
 import { createPlayer, updatePlayer, handleJumpPress, handleJumpRelease } from './player.js';
@@ -83,6 +84,9 @@ let currentSpeed = CONFIG.GAME_SPEED;
 
 // Floating popup particles (Phase 5)
 let popups = [];
+
+// Stomp ring effects (Phase 6)
+let stompRings = [];
 
 // Gene name flash (Phase 5)
 let geneFlashName = null;
@@ -177,6 +181,7 @@ function resetGame() {
   collectedGenes = [];
   currentSpeed = CONFIG.GAME_SPEED;
   popups = [];
+  stompRings = [];
   geneFlashName = null;
   geneFlashTimer = 0;
   highScore = loadHighScore();
@@ -326,6 +331,8 @@ function createObstacle(type, xOverride) {
     height: type.height,
     color: type.color,
     hitboxShrink: type.hitboxShrink,
+    hp: type.hp || 1,
+    placement: type.placement || 'ground',
   };
 }
 
@@ -355,15 +362,35 @@ function updateSpawning(deltaTime) {
       obstacles.push(createObstacle(type));
 
       // Cluster: with CLUSTER_PROBABILITY, spawn 1-2 more at staggered X positions
+      // Dynamic gap: widens at higher speeds so players have reaction time
+      const dynamicGap = Math.max(CONFIG.CLUSTER_GAP, CONFIG.CLUSTER_GAP_MIN_TIME * currentSpeed);
+
       if (Math.random() < CONFIG.CLUSTER_PROBABILITY) {
+        // Force all cluster members to match lead obstacle's placement type
+        const leadPlacement = type.placement || 'ground';
+        const clusterTypes = availableTypes.filter(t => (t.placement || 'ground') === leadPlacement);
+        const clusterPool = clusterTypes.length > 0 ? clusterTypes : [type];
+
         const clusterSize = 1 + Math.floor(Math.random() * (CONFIG.CLUSTER_SIZE_MAX - 1));
         for (let i = 0; i < clusterSize; i++) {
-          const extraType = weightedRandom(availableTypes);
-          const clusterX = CONFIG.CANVAS_WIDTH + (i + 1) * CONFIG.CLUSTER_GAP + extraType.width + 10;
+          const extraType = weightedRandom(clusterPool);
+          const clusterX = CONFIG.CANVAS_WIDTH + (i + 1) * dynamicGap + extraType.width + 10;
           obstacles.push(createObstacle(extraType, clusterX));
         }
       }
     }
+
+    // Post-spawn filter: remove any floating obstacle too close to a ground obstacle
+    // Catches edge cases across separate spawn events
+    const safeDistance = CONFIG.CLUSTER_GAP_MIN_TIME * currentSpeed;
+    obstacles = obstacles.filter(obs => {
+      if (obs.placement !== 'floating') return true;
+      for (const other of obstacles) {
+        if (other === obs || other.placement !== 'ground') continue;
+        if (Math.abs(obs.x - other.x) < safeDistance) return false;
+      }
+      return true;
+    });
 
     // Vary next spawn interval to avoid metronome-regular spacing
     const variation = (Math.random() - 0.5) * 2 * CONFIG.SPAWN_INTERVAL_VARIATION;
@@ -395,7 +422,7 @@ function updateObstacles(deltaTime) {
  * @returns {Object} Gene state object
  */
 function createGene(type) {
-  const spawnY = 220 + Math.random() * 130;
+  const spawnY = 300 + Math.random() * 200;
   return {
     type: type.name,
     typeData: type,
@@ -597,11 +624,11 @@ function aabbOverlap(a, b) {
 }
 
 /**
- * Checks all active obstacles for collision with the player (using shrunk hitboxes)
- * and also for near-miss (visual bounds overlap but hitboxes did not).
+ * Checks all active obstacles for collision with the player (using shrunk hitboxes).
+ * Distinguishes stomps (landing on top) from lethal collisions and near-misses.
  *
- * @param {Object} player - Player state object with x, y
- * @returns {{ collision: Object|null, nearMiss: boolean }}
+ * @param {Object} player - Player state object with x, y, velocityY
+ * @returns {{ collision: Object|null, nearMiss: boolean, stomp: Object|null }}
  */
 function checkCollisions(player) {
   const playerHitbox = getHitbox(
@@ -612,7 +639,13 @@ function checkCollisions(player) {
   for (const obs of obstacles) {
     const obsHitbox = getHitbox(obs, obs.hitboxShrink);
     if (aabbOverlap(playerHitbox, obsHitbox)) {
-      return { collision: obs, nearMiss: false };
+      // Stomp check: player must be falling AND player bottom near obstacle top
+      const playerBottom = playerHitbox.y + playerHitbox.height;
+      const obsTop = obsHitbox.y;
+      if (player.velocityY > 0 && (playerBottom - obsTop) <= CONFIG.STOMP_THRESHOLD) {
+        return { collision: null, nearMiss: false, stomp: obs };
+      }
+      return { collision: obs, nearMiss: false, stomp: null };
     }
   }
 
@@ -621,11 +654,11 @@ function checkCollisions(player) {
   for (const obs of obstacles) {
     const obsVisual = { x: obs.x, y: obs.y, width: obs.width, height: obs.height };
     if (aabbOverlap(playerVisual, obsVisual)) {
-      return { collision: null, nearMiss: true };
+      return { collision: null, nearMiss: true, stomp: null };
     }
   }
 
-  return { collision: null, nearMiss: false };
+  return { collision: null, nearMiss: false, stomp: null };
 }
 
 /**
@@ -638,6 +671,75 @@ function triggerDeath(obstacle) {
   deathTimer = 0;
   killerObstacleName = obstacle.displayName;
   gameState = 'DYING';
+}
+
+// ---------------------------------------------------------------------------
+// Stomp handling (Phase 6)
+// ---------------------------------------------------------------------------
+
+/**
+ * Darkens a hex color string by a given factor (0-1, where 0 = black).
+ *
+ * @param {string} hex - Hex color string (e.g. '#B0C8E0')
+ * @param {number} factor - Darkening factor (0.7 = 70% brightness)
+ * @returns {string} Darkened hex color
+ */
+function darkenColor(hex, factor) {
+  const r = Math.round(parseInt(hex.slice(1, 3), 16) * factor);
+  const g = Math.round(parseInt(hex.slice(3, 5), 16) * factor);
+  const b = Math.round(parseInt(hex.slice(5, 7), 16) * factor);
+  return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+/**
+ * Handles a successful stomp on an obstacle.
+ * Decrements HP, bounces the player, restores 1 jump charge,
+ * and spawns visual feedback (popup + ring on kill, popup on crack).
+ *
+ * @param {Object} obs - The stomped obstacle state object
+ */
+function handleStomp(obs) {
+  obs.hp -= 1;
+
+  // Bounce player upward and restore 1 jump charge
+  player.velocityY = CONFIG.STOMP_BOUNCE_VELOCITY;
+  player.jumpsRemaining = Math.min(player.jumpsRemaining + 1, 2);
+  player.isGrounded = false;
+
+  if (obs.hp <= 0) {
+    // Destroyed: remove obstacle, spawn "POP!" popup + expanding ring
+    const cx = obs.x + obs.width / 2;
+    const cy = obs.y + obs.height / 2;
+    spawnCollectionPopup(cx, cy, 'POP!');
+    stompRings.push({
+      x: cx,
+      y: cy,
+      radius: 5,
+      maxRadius: 60,
+      alpha: 1.0,
+      color: CONFIG.STOMP_POP_COLOR,
+    });
+    obstacles = obstacles.filter(o => o !== obs);
+  } else {
+    // Damaged but alive: spawn "CRACK!" popup, darken obstacle color
+    spawnCollectionPopup(obs.x + obs.width / 2, obs.y, 'CRACK!');
+    obs.color = darkenColor(obs.color, 0.6);
+  }
+}
+
+/**
+ * Advances all stomp ring effects: grows radius and fades alpha.
+ * Removes fully faded rings.
+ *
+ * @param {number} deltaTime - Seconds elapsed since last frame
+ */
+function updateStompRings(deltaTime) {
+  for (const ring of stompRings) {
+    const speed = (ring.maxRadius - 5) / 0.4; // expand over ~0.4s
+    ring.radius += speed * deltaTime;
+    ring.alpha -= 2.5 * deltaTime; // fade over ~0.4s
+  }
+  stompRings = stompRings.filter(r => r.alpha > 0);
 }
 
 // ---------------------------------------------------------------------------
@@ -728,6 +830,7 @@ function gameLoop(timestamp) {
     updateGeneSpawning(deltaTime);
     updateGenes(deltaTime);
     updatePopups(deltaTime);
+    updateStompRings(deltaTime);
     updateGeneFlash(deltaTime);
     updatePlayer(player, deltaTime);
 
@@ -737,12 +840,16 @@ function gameLoop(timestamp) {
     // Gene collection check (before obstacle collision check)
     checkGeneCollisions(player);
 
-    // Collision and near-miss detection
+    // Collision, near-miss, and stomp detection
     const collisionResult = checkCollisions(player);
-    if (collisionResult.collision) {
+    if (collisionResult.stomp) {
+      handleStomp(collisionResult.stomp);
+    } else if (collisionResult.collision) {
       triggerDeath(collisionResult.collision);
       // Skip rest of RUNNING rendering -- DYING state handles the next frame
-    } else {
+    }
+
+    if (gameState === 'RUNNING') {
       if (collisionResult.nearMiss && nearMissTimer <= 0) {
         nearMissTimer = CONFIG.NEAR_MISS_FLASH_DURATION;
       }
@@ -767,12 +874,14 @@ function gameLoop(timestamp) {
 
       drawHUD(ctx, CONFIG, distance, collectedGenes.length, getTotalScore());
       drawPopups(ctx, popups);
+      drawStompRings(ctx, stompRings);
       drawGeneFlash(ctx, CONFIG, geneFlashName, geneFlashTimer);
     }
 
   } else if (gameState === 'DYING') {
     deathTimer += deltaTime;
     updatePopups(deltaTime);
+    updateStompRings(deltaTime);
 
     if (deathTimer >= CONFIG.DEATH_ANIMATION_DURATION) {
       // Transition to GAME_OVER: save high score, set timer
@@ -796,6 +905,7 @@ function gameLoop(timestamp) {
 
       drawHUD(ctx, CONFIG, distance, collectedGenes.length, getTotalScore());
       drawPopups(ctx, popups);
+      drawStompRings(ctx, stompRings);
     });
 
   } else if (gameState === 'PAUSED') {
@@ -804,6 +914,7 @@ function gameLoop(timestamp) {
     drawPlayer(ctx, player, CONFIG); // frozen position (no updatePlayer call)
     drawHUD(ctx, CONFIG, distance, collectedGenes.length, getTotalScore());
     drawPopups(ctx, popups);
+    drawStompRings(ctx, stompRings);
     drawPauseOverlay(ctx, CONFIG);
 
   } else if (gameState === 'GAME_OVER') {
@@ -853,6 +964,7 @@ window.__game = {
   get collectedGenes()      { return collectedGenes; },
   get currentSpeed()        { return currentSpeed; },
   get popups()              { return popups; },
+  get stompRings()          { return stompRings; },
   get geneFlashName()       { return geneFlashName; },
   get highScore()           { return highScore; },
 };

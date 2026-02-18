@@ -81,6 +81,7 @@ export default {
       floatHeight: 0,
       spawnWeight: 3,             // most common
       unlockAfter: 0,             // available from start
+      hp: 1,
     },
     {
       name: 'toxin',
@@ -93,6 +94,7 @@ export default {
       floatHeight: 0,
       spawnWeight: 2,
       unlockAfter: 10,            // unlocks ~10s in
+      hp: 1,
     },
     {
       name: 'salt-crystal',
@@ -105,6 +107,7 @@ export default {
       floatHeight: 120,           // px above GROUND_Y -- at jump apex
       spawnWeight: 1,
       unlockAfter: 20,            // unlocks ~20s in
+      hp: 2,                      // needs 2 stomps to destroy
     },
   ],
 
@@ -160,6 +163,12 @@ export default {
   CLUSTER_PROBABILITY: 0.25,      // 25% chance a spawn triggers a cluster
   CLUSTER_SIZE_MAX: 3,            // max obstacles in a cluster
   CLUSTER_GAP: 180,               // px gap between cluster members
+
+  // -- Stomp mechanic (Phase 6) --
+  STOMP_THRESHOLD: 16,            // px depth into obstacle top that counts as stomp
+  STOMP_BOUNCE_VELOCITY: -450,    // upward bounce after successful stomp
+  STOMP_POP_COLOR: '#FFFFFF',     // expanding ring color on stomp kill
+  CLUSTER_GAP_MIN_TIME: 0.75,    // seconds minimum between cluster members (scales with speed)
 
   // -- Hitbox (Phase 4) --
   PLAYER_HITBOX_SHRINK: 0.15,     // player collision box shrink (same 15%)
