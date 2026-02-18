@@ -51,17 +51,18 @@ Plans:
 - [ ] 02-01: TBD
 
 ### Phase 3: Game Loop + Scrolling
-**Goal**: The game runs a continuous loop with a working state machine, and the ground scrolls to create the illusion of running
+**Goal**: The game runs a continuous loop with a working five-state machine (READY, COUNTDOWN, RUNNING, PAUSED, GAME_OVER), the ground scrolls to create the illusion of running, and entity types are defined as rich data-driven arrays
 **Depends on**: Phase 2
 **Requirements**: MECH-04, INFR-05
 **Success Criteria** (what must be TRUE):
   1. After pressing Start, the ground scrolls left continuously and the player character appears to run automatically
-  2. Game transitions cleanly between READY, RUNNING, and GAME_OVER states
+  2. Game transitions cleanly between READY, COUNTDOWN, RUNNING, PAUSED, and GAME_OVER states
   3. Entity types (obstacles, genes) are defined as data-driven arrays in config.js, not hardcoded in logic
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md -- Config expansion (bold palette, rich entity arrays) and scrolling two-tone ground with dash markers
+- [ ] 03-02-PLAN.md -- Five-state machine, countdown, pause/resume, game over with cooldown, distance HUD
 
 ### Phase 4: Obstacles + Collision
 **Goal**: Obstacles spawn, scroll toward the player, and colliding with one ends the game with a score screen
@@ -116,7 +117,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|---------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-02-18 |
 | 2. Player + Physics | 0/TBD | Not started | - |
-| 3. Game Loop + Scrolling | 0/TBD | Not started | - |
+| 3. Game Loop + Scrolling | 0/2 | Planned | - |
 | 4. Obstacles + Collision | 0/TBD | Not started | - |
 | 5. Collectibles + Scoring | 0/TBD | Not started | - |
 | 6. Visual Polish | 0/TBD | Not started | - |
