@@ -81,20 +81,37 @@ export function drawText(ctx, text, x, y, options = {}) {
 }
 
 /**
- * Draws the ground: a filled area from the ground line to the canvas bottom,
- * topped by a brighter ground line to visually anchor the runner.
+ * Draws the scrolling two-tone ground with dash markers for motion illusion.
+ * Call every frame with an accumulating groundOffset to animate the markers.
  *
  * @param {CanvasRenderingContext2D} ctx
- * @param {Object} config - Game CONFIG object
+ * @param {Object} config       - Game CONFIG object
+ * @param {number} groundOffset - Cumulative scroll distance in pixels (increases each frame)
  */
-export function drawGroundLine(ctx, config) {
-  // Fill the ground area below the ground line
+export function drawGround(ctx, config, groundOffset) {
+  // Fill the earth band (ground area below the surface line)
   ctx.fillStyle = config.GROUND_COLOR;
   ctx.fillRect(0, config.GROUND_Y, config.CANVAS_WIDTH, config.CANVAS_HEIGHT - config.GROUND_Y);
 
-  // Draw a brighter top edge as the visible ground line
-  ctx.fillStyle = config.GROUND_LINE_COLOR || '#555577';
+  // Draw the bright surface line at GROUND_Y
+  ctx.fillStyle = config.GROUND_LINE_COLOR || '#4A90D9';
   ctx.fillRect(0, config.GROUND_Y, config.CANVAS_WIDTH, config.GROUND_LINE_WIDTH);
+
+  // Draw scrolling dash markers below the surface line
+  // Two-segment tile approach: phase shifts all dashes left at scroll speed
+  const spacing = config.GROUND_MARKER_SPACING;
+  const phase = groundOffset % spacing;
+  const markerY = config.GROUND_Y + config.GROUND_MARKER_Y_OFFSET;
+
+  ctx.fillStyle = config.GROUND_MARKER_COLOR;
+  for (let x = -phase; x < config.CANVAS_WIDTH + spacing; x += spacing) {
+    ctx.fillRect(
+      Math.round(x),
+      markerY,
+      config.GROUND_MARKER_WIDTH,
+      config.GROUND_MARKER_HEIGHT,
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------

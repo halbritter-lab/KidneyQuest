@@ -2,7 +2,7 @@
 // Wires config, input, renderer, and player physics into a working game loop.
 
 import CONFIG from './config.js';
-import { setupCanvas, resizeCanvas, clearCanvas, drawText, drawGroundLine, drawPlayer } from './renderer.js';
+import { setupCanvas, resizeCanvas, clearCanvas, drawText, drawGround, drawPlayer } from './renderer.js';
 import { setupInput } from './input.js';
 import { createPlayer, updatePlayer, handleJumpPress, handleJumpRelease } from './player.js';
 
@@ -137,17 +137,29 @@ function renderStartScreen(ctx, timestamp) {
 
 let lastTime = 0;
 
+// Cumulative ground scroll distance in pixels.
+// Increments at READY_SCROLL_SPEED on the start screen and at GAME_SPEED while running,
+// creating a continuous motion illusion via the dash markers.
+let groundOffset = 0;
+
 function gameLoop(timestamp) {
   // Delta time in seconds, capped at 0.1s to prevent huge physics jumps on
   // tab switch or browser throttling
   const deltaTime = Math.min((timestamp - lastTime) / 1000, 0.1);
   lastTime = timestamp;
 
+  // Advance ground scroll based on current game state
+  if (gameState === 'READY') {
+    groundOffset += CONFIG.READY_SCROLL_SPEED * deltaTime;
+  } else if (gameState === 'RUNNING') {
+    groundOffset += CONFIG.GAME_SPEED * deltaTime;
+  }
+
   // Clear canvas to background colour each frame
   clearCanvas(ctx, CONFIG);
 
-  // Ground line is always visible regardless of state
-  drawGroundLine(ctx, CONFIG);
+  // Scrolling ground is always visible regardless of state
+  drawGround(ctx, CONFIG, groundOffset);
 
   if (gameState === 'READY') {
     renderStartScreen(ctx, timestamp);
