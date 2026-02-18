@@ -15,15 +15,15 @@ Requirements for v1.0 Playable Game milestone. Each maps to roadmap phases.
 - [x] **MECH-04**: Player character runs automatically on scrolling ground
 - [x] **MECH-05**: Player can jump with Space/ArrowUp (keyboard) or tap (touch)
 - [x] **MECH-06**: Jump uses gravity arc with delta-time physics (works on 60Hz and 120Hz)
-- [ ] **MECH-07**: Obstacles spawn at intervals and scroll left toward player
-- [ ] **MECH-08**: Hitting an obstacle triggers GAME_OVER state
+- [x] **MECH-07**: Obstacles spawn at intervals and scroll left toward player
+- [x] **MECH-08**: Hitting an obstacle triggers GAME_OVER state
 - [ ] **MECH-09**: Gene collectibles spawn and scroll left with floating motion
 - [ ] **MECH-10**: Collecting a gene increases score and gene disappears
 - [ ] **MECH-11**: Score displays during gameplay (distance + genes collected)
-- [ ] **MECH-12**: Game over screen shows final score
+- [x] **MECH-12**: Game over screen shows final score
 - [ ] **MECH-13**: Player can restart from game over by pressing Space or tapping
 - [ ] **MECH-14**: Game speed increases gradually over time (difficulty ramp)
-- [ ] **MECH-15**: Multiple obstacle types defined in config (kidney stone, blockage)
+- [x] **MECH-15**: Multiple obstacle types defined in config (kidney stone, blockage)
 - [ ] **MECH-16**: Multiple gene types defined in config (PKD1, COL4A5, NPHS1) with different point values
 
 ### Visual Polish
@@ -42,7 +42,7 @@ Requirements for v1.0 Playable Game milestone. Each maps to roadmap phases.
 - [x] **INFR-01**: Project uses ES Modules architecture (single `<script type="module">`)
 - [x] **INFR-02**: All tunable constants centralized in config.js
 - [x] **INFR-03**: Canvas scales responsively to fit viewport (fixed resolution, CSS-scaled)
-- [ ] **INFR-04**: Collision detection uses AABB with configurable hitbox shrink for forgiving feel
+- [x] **INFR-04**: Collision detection uses AABB with configurable hitbox shrink for forgiving feel
 - [x] **INFR-05**: Entity types (obstacles, genes) are data-driven arrays in config
 
 ## v2 Requirements
@@ -86,15 +86,15 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | MECH-04 | Phase 3 | Complete |
 | MECH-05 | Phase 2 | Complete |
 | MECH-06 | Phase 2 | Complete |
-| MECH-07 | Phase 4 | Pending |
-| MECH-08 | Phase 4 | Pending |
+| MECH-07 | Phase 4 | Complete |
+| MECH-08 | Phase 4 | Complete |
 | MECH-09 | Phase 5 | Pending |
 | MECH-10 | Phase 5 | Pending |
 | MECH-11 | Phase 5 | Pending |
-| MECH-12 | Phase 4 | Pending |
+| MECH-12 | Phase 4 | Complete |
 | MECH-13 | Phase 5 | Pending |
 | MECH-14 | Phase 5 | Pending |
-| MECH-15 | Phase 4 | Pending |
+| MECH-15 | Phase 4 | Complete |
 | MECH-16 | Phase 5 | Pending |
 | VIZP-01 | Phase 6 | Pending |
 | VIZP-02 | Phase 6 | Pending |
@@ -107,7 +107,7 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | INFR-01 | Phase 1 | Complete |
 | INFR-02 | Phase 1 | Complete |
 | INFR-03 | Phase 1 | Complete |
-| INFR-04 | Phase 4 | Pending |
+| INFR-04 | Phase 4 | Complete |
 | INFR-05 | Phase 3 | Complete |
 
 **Coverage:**
@@ -117,4 +117,4 @@ Deferred to future milestone. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-17*
-*Last updated: 2026-02-18 after Phase 3 completion*
+*Last updated: 2026-02-18 after Phase 4 completion*
