@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - HTML canvas, ES Modules, config, input, and responsive scaling
 - [x] **Phase 2: Player + Physics** - Chibi zebra player with gravity-based jump mechanics
-- [ ] **Phase 3: Game Loop + Scrolling** - State machine, render loop, and scrolling ground
+- [x] **Phase 3: Game Loop + Scrolling** - State machine, render loop, and scrolling ground
 - [ ] **Phase 4: Obstacles + Collision** - Obstacle spawning, AABB collision, and game over state
 - [ ] **Phase 5: Collectibles + Scoring** - Gene pickups, score display, difficulty ramp, and restart
 - [ ] **Phase 6: Visual Polish** - Sprites, parallax backgrounds, branding, and themed art
@@ -63,7 +63,7 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md -- Config expansion (bold palette, rich entity arrays) and scrolling two-tone ground with dash markers
-- [ ] 03-02-PLAN.md -- Five-state machine, countdown, pause/resume, game over with cooldown, distance HUD
+- [x] 03-02-PLAN.md -- Five-state machine, countdown, pause/resume, game over with cooldown, distance HUD
 
 ### Phase 4: Obstacles + Collision
 **Goal**: Obstacles spawn, scroll toward the player, and colliding with one ends the game with a score screen
@@ -120,7 +120,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|---------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-02-18 |
 | 2. Player + Physics | 2/2 | Complete | 2026-02-18 |
-| 3. Game Loop + Scrolling | 1/2 | In progress | - |
+| 3. Game Loop + Scrolling | 2/2 | Complete | 2026-02-18 |
 | 4. Obstacles + Collision | 0/2 | Planned | - |
 | 5. Collectibles + Scoring | 0/2 | Planned | - |
 | 6. Visual Polish | 0/TBD | Not started | - |

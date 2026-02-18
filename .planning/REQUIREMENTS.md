@@ -12,7 +12,7 @@ Requirements for v1.0 Playable Game milestone. Each maps to roadmap phases.
 - [x] **MECH-01**: Game displays centered canvas with dark background on page load
 - [x] **MECH-02**: Game shows "Press Space to Start" on READY screen
 - [x] **MECH-03**: Player can start game by pressing Space or tapping screen
-- [ ] **MECH-04**: Player character runs automatically on scrolling ground
+- [x] **MECH-04**: Player character runs automatically on scrolling ground
 - [x] **MECH-05**: Player can jump with Space/ArrowUp (keyboard) or tap (touch)
 - [x] **MECH-06**: Jump uses gravity arc with delta-time physics (works on 60Hz and 120Hz)
 - [ ] **MECH-07**: Obstacles spawn at intervals and scroll left toward player
@@ -43,7 +43,7 @@ Requirements for v1.0 Playable Game milestone. Each maps to roadmap phases.
 - [x] **INFR-02**: All tunable constants centralized in config.js
 - [x] **INFR-03**: Canvas scales responsively to fit viewport (fixed resolution, CSS-scaled)
 - [ ] **INFR-04**: Collision detection uses AABB with configurable hitbox shrink for forgiving feel
-- [ ] **INFR-05**: Entity types (obstacles, genes) are data-driven arrays in config
+- [x] **INFR-05**: Entity types (obstacles, genes) are data-driven arrays in config
 
 ## v2 Requirements
 
@@ -83,7 +83,7 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | MECH-01 | Phase 1 | Complete |
 | MECH-02 | Phase 1 | Complete |
 | MECH-03 | Phase 1 | Complete |
-| MECH-04 | Phase 3 | Pending |
+| MECH-04 | Phase 3 | Complete |
 | MECH-05 | Phase 2 | Complete |
 | MECH-06 | Phase 2 | Complete |
 | MECH-07 | Phase 4 | Pending |
@@ -108,7 +108,7 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | INFR-02 | Phase 1 | Complete |
 | INFR-03 | Phase 1 | Complete |
 | INFR-04 | Phase 4 | Pending |
-| INFR-05 | Phase 3 | Pending |
+| INFR-05 | Phase 3 | Complete |
 
 **Coverage:**
 - v1 requirements: 29 total
@@ -117,4 +117,4 @@ Deferred to future milestone. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-17*
-*Last updated: 2026-02-18 after Phase 2 completion*
+*Last updated: 2026-02-18 after Phase 3 completion*

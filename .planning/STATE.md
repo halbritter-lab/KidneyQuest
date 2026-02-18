@@ -29,7 +29,7 @@ Progress: [██████░░░░] ~62%
 |-------|-------|-------|----------|
 | 01-foundation | 2 | ~40 min | ~20 min |
 | 02-player-physics | 2 | ~55 min | ~28 min |
-| 03-game-loop-scrolling | 1 (of 2) | ~15 min | ~15 min |
+| 03-game-loop-scrolling | 2/2 | ~40 min | ~20 min |
 | 04-obstacles-collision | 1 (of 2) | ~18 min | ~18 min |
 
 **Recent Trend:**
@@ -74,6 +74,11 @@ Recent decisions affecting current work:
 - [03-01]: READY_SCROLL_SPEED = 60 (~30% of GAME_SPEED) -- subtle idle hint; calm at ready, full speed when running
 - [03-01]: Gene types include geneName and geneDescription -- educational scaffold for Phase 4+ tooltip UI without schema changes
 - [03-01]: OBSTACLE_TYPES gained spawnRate and movement fields -- Phase 4 spawner can be fully data-driven
+- [03-02]: onPause as 4th param to setupInput with default no-op -- backward-compatible pause callback
+- [03-02]: lastTime = 0 on both pause entry AND resume -- CRITICAL for delta-time safety
+- [03-02]: gameOverTimer >= FREEZE_DELAY + COOLDOWN for restart -- cooldown starts after freeze delay
+- [03-02]: window.__game getter properties -- read-only state exposure for testing and workshop debugging
+- [03-02]: window.triggerGameOver exposed globally -- Phase 4 collision triggers game over, workshop manual testing
 - [04-01]: OBSTACLE_TYPES replaced from Phase 3 placeholder to full Phase 4 spec (hitboxShrink, placement, floatHeight, spawnWeight, unlockAfter, displayName)
 - [04-01]: Spawn X = CANVAS_WIDTH + type.width + 10 -- ensures full off-screen clearance before collision checks in Plan 02
 - [04-01]: spawnTimer -= spawnInterval (not = 0) -- preserves remainder for accurate timing at all frame rates
