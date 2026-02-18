@@ -4,6 +4,19 @@
 
 import CONFIG from './config.js';
 
+// Animation state definitions -- internal to player.js only.
+// frames: how many frames exist for this state
+// fps:    playback speed
+// loop:   true = cycle continuously, false = hold last frame (one-shot)
+const ANIM_STATES = {
+  idle:       { frames: 4, fps: 8,  loop: true  },
+  run:        { frames: 6, fps: 12, loop: true  },
+  jump:       { frames: 2, fps: 4,  loop: false },
+  fall:       { frames: 2, fps: 4,  loop: true  },
+  land:       { frames: 3, fps: 16, loop: false },
+  doubleJump: { frames: 2, fps: 6,  loop: false },
+};
+
 /**
  * Creates a new player entity standing on the ground.
  *
@@ -104,8 +117,10 @@ export function updatePlayer(player, deltaTime) {
 }
 
 /**
- * Determines and updates animState based on physics.
- * 'land' is a one-shot: plays for ~0.15 s then transitions to run/idle.
+ * Determines and updates animState based on physics, then advances the frame counter.
+ * 'land' is driven by ANIM_STATES frame count (one-shot): after last frame, transitions to run/idle.
+ * All other one-shot states (jump, doubleJump) hold on last frame until physics changes state.
+ * Looping states cycle continuously.
  *
  * @param {Object} player
  * @param {number} deltaTime
@@ -113,10 +128,25 @@ export function updatePlayer(player, deltaTime) {
 function updateAnimState(player, deltaTime) {
   const prevState = player.animState;
 
+  // Guard: if animState is not recognised, default to 'idle' to prevent crashes
+  if (!ANIM_STATES[player.animState]) {
+    player.animState = 'idle';
+  }
+
+  // -------------------------------------------------------------------------
+  // State transition logic
+  // -------------------------------------------------------------------------
   if (player.animState === 'land') {
-    player.animTime += deltaTime;
-    // One-shot: 0.15 s, then decide run vs idle
-    if (player.animTime >= 0.15) {
+    // 'land' is a one-shot driven by its frame count in ANIM_STATES.
+    // The frame advancement below will reach the last frame; once it has
+    // been displayed for at least one frame-duration, transition out.
+    // We detect "played fully" by checking if we're on the last frame
+    // and accumulated time exceeds one frame period.
+    const anim = ANIM_STATES.land;
+    if (
+      player.animFrame >= anim.frames - 1 &&
+      player.animTime >= 1 / anim.fps
+    ) {
       player.animState = Math.abs(player.velocityX) > 5 ? 'run' : 'idle';
       player.animFrame = 0;
       player.animTime = 0;
@@ -131,10 +161,35 @@ function updateAnimState(player, deltaTime) {
     player.animState = 'fall';
   }
 
-  // Reset animation when state changes
+  // Reset animation when state changes (prevents frame bleeding -- Pitfall 4)
   if (player.animState !== prevState) {
     player.animFrame = 0;
     player.animTime = 0;
+  }
+
+  // -------------------------------------------------------------------------
+  // Frame advancement
+  // -------------------------------------------------------------------------
+  const anim = ANIM_STATES[player.animState];
+
+  if (anim) {
+    player.animTime += deltaTime;
+
+    // Advance one frame each time enough time has elapsed for one frame period
+    if (player.animTime >= 1 / anim.fps) {
+      player.animTime -= 1 / anim.fps;  // preserve remainder for smooth timing
+      player.animFrame++;
+
+      if (anim.loop) {
+        // Looping: wrap back to frame 0
+        player.animFrame %= anim.frames;
+      } else {
+        // One-shot: clamp to last frame, do not wrap
+        if (player.animFrame >= anim.frames) {
+          player.animFrame = anim.frames - 1;
+        }
+      }
+    }
   }
 }
 
