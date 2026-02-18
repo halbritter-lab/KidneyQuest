@@ -19,8 +19,9 @@ export default {
   SPEED_INCREMENT: 5,            // px/s per second of acceleration
   MAX_SPEED: 500,                // px/s cap
 
-  // Ground line
-  GROUND_LINE_WIDTH: 2,          // px thickness
+  // Ground
+  GROUND_LINE_WIDTH: 2,          // px thickness of the bright top edge
+  GROUND_LINE_COLOR: '#555577',  // brighter top edge of the ground
 
   // Obstacle types (for Phase 4+)
   OBSTACLE_TYPES: [

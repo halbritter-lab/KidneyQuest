@@ -81,12 +81,18 @@ export function drawText(ctx, text, x, y, options = {}) {
 }
 
 /**
- * Draws the horizontal ground line across the full canvas width.
+ * Draws the ground: a filled area from the ground line to the canvas bottom,
+ * topped by a brighter ground line to visually anchor the runner.
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {Object} config - Game CONFIG object
  */
 export function drawGroundLine(ctx, config) {
+  // Fill the ground area below the ground line
   ctx.fillStyle = config.GROUND_COLOR;
+  ctx.fillRect(0, config.GROUND_Y, config.CANVAS_WIDTH, config.CANVAS_HEIGHT - config.GROUND_Y);
+
+  // Draw a brighter top edge as the visible ground line
+  ctx.fillStyle = config.GROUND_LINE_COLOR || '#555577';
   ctx.fillRect(0, config.GROUND_Y, config.CANVAS_WIDTH, config.GROUND_LINE_WIDTH);
 }

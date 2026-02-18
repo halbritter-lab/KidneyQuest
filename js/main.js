@@ -98,8 +98,15 @@ function gameLoop(timestamp) {
     renderStartScreen(ctx, timestamp);
   }
 
-  // gameState === 'RUNNING': blank canvas with ground line for now.
-  // Phase 2 adds player rendering and physics using deltaTime.
+  if (gameState === 'RUNNING') {
+    // Phase 2 adds player rendering and physics using deltaTime.
+    // Placeholder text so the running state isn't visually blank.
+    drawText(ctx, 'Game Running...', CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT * 0.45, {
+      font: '24px sans-serif',
+      color: CONFIG.TEXT_COLOR,
+      alpha: 0.3,
+    });
+  }
 
   requestAnimationFrame(gameLoop);
 }
