@@ -4,7 +4,7 @@
 import CONFIG from './config.js';
 import {
   setupCanvas, resizeCanvas, clearCanvas, drawText,
-  drawGround, drawPlayer,
+  drawGround, drawPlayer, drawObstacles,
   drawCountdown, drawPauseOverlay, drawGameOver, drawHUD,
 } from './renderer.js';
 import { setupInput } from './input.js';
@@ -58,6 +58,12 @@ let distance = 0;
 // Increments at READY_SCROLL_SPEED on the start screen, at GAME_SPEED while running.
 let groundOffset = 0;
 
+// Obstacle state (Phase 4)
+let obstacles = [];
+let spawnTimer = 0;
+let spawnInterval = CONFIG.SPAWN_BASE_INTERVAL;
+let gameElapsed = 0;  // seconds since RUNNING started (for progressive unlocking)
+
 // ---------------------------------------------------------------------------
 // State transition helpers
 // ---------------------------------------------------------------------------
@@ -89,6 +95,10 @@ function resetGame() {
   distance = 0;
   groundOffset = 0;
   Object.assign(player, createPlayer(CONFIG));
+  obstacles = [];
+  spawnTimer = 0;
+  spawnInterval = CONFIG.SPAWN_BASE_INTERVAL;
+  gameElapsed = 0;
   gameState = 'READY';
 }
 
@@ -191,6 +201,109 @@ function renderStartScreen(ctx, timestamp) {
 }
 
 // ---------------------------------------------------------------------------
+// Obstacle helpers (Phase 4)
+// ---------------------------------------------------------------------------
+
+/**
+ * Weighted random selection from an array of obstacle type objects.
+ * Each type uses its `spawnWeight` property (defaults to 1 if missing).
+ *
+ * @param {Array} types - Array of obstacle type objects with spawnWeight
+ * @returns {Object} A randomly selected type object
+ */
+function weightedRandom(types) {
+  const total = types.reduce((sum, t) => sum + (t.spawnWeight || 1), 0);
+  let rand = Math.random() * total;
+  for (const type of types) {
+    rand -= (type.spawnWeight || 1);
+    if (rand <= 0) return type;
+  }
+  return types[types.length - 1];
+}
+
+/**
+ * Creates an obstacle state object for a given type.
+ * Default spawn X is just off the right edge of the canvas.
+ * xOverride is used for cluster members at staggered positions.
+ *
+ * @param {Object} type - Obstacle type definition from CONFIG.OBSTACLE_TYPES
+ * @param {number} [xOverride] - Optional X position override for cluster members
+ * @returns {Object} Obstacle state object
+ */
+function createObstacle(type, xOverride) {
+  const isFloat = type.placement === 'floating';
+  const visualY = isFloat
+    ? CONFIG.GROUND_Y - type.height - type.floatHeight
+    : CONFIG.GROUND_Y - type.height;
+
+  return {
+    type: type.name,
+    displayName: type.displayName,
+    x: xOverride !== undefined ? xOverride : CONFIG.CANVAS_WIDTH + type.width + 10,
+    y: visualY,
+    width: type.width,
+    height: type.height,
+    color: type.color,
+    hitboxShrink: type.hitboxShrink,
+  };
+}
+
+/**
+ * Advances the spawn timer with delta-time accumulation.
+ * Applies progressive type unlocking: ground types first, then floating after FLOAT_UNLOCK_ELAPSED.
+ * Cluster spawning: CLUSTER_PROBABILITY chance of 1-2 additional staggered obstacles per spawn.
+ *
+ * @param {number} deltaTime - Seconds elapsed since last frame
+ */
+function updateSpawning(deltaTime) {
+  gameElapsed += deltaTime;
+  spawnTimer += deltaTime;
+
+  if (spawnTimer >= spawnInterval) {
+    spawnTimer -= spawnInterval;  // preserve remainder -- critical for accuracy
+
+    // Filter to unlocked types; ground-only until FLOAT_UNLOCK_ELAPSED
+    const availableTypes = CONFIG.OBSTACLE_TYPES.filter(t => {
+      if ((t.unlockAfter || 0) > gameElapsed) return false;
+      if (t.placement === 'floating' && gameElapsed < CONFIG.FLOAT_UNLOCK_ELAPSED) return false;
+      return true;
+    });
+
+    if (availableTypes.length > 0) {
+      const type = weightedRandom(availableTypes);
+      obstacles.push(createObstacle(type));
+
+      // Cluster: with CLUSTER_PROBABILITY, spawn 1-2 more at staggered X positions
+      if (Math.random() < CONFIG.CLUSTER_PROBABILITY) {
+        const clusterSize = 1 + Math.floor(Math.random() * (CONFIG.CLUSTER_SIZE_MAX - 1));
+        for (let i = 0; i < clusterSize; i++) {
+          const extraType = weightedRandom(availableTypes);
+          const clusterX = CONFIG.CANVAS_WIDTH + (i + 1) * CONFIG.CLUSTER_GAP + extraType.width + 10;
+          obstacles.push(createObstacle(extraType, clusterX));
+        }
+      }
+    }
+
+    // Vary next spawn interval to avoid metronome-regular spacing
+    const variation = (Math.random() - 0.5) * 2 * CONFIG.SPAWN_INTERVAL_VARIATION;
+    spawnInterval = Math.max(0.8, CONFIG.SPAWN_BASE_INTERVAL + variation);
+  }
+}
+
+/**
+ * Moves all obstacles left at GAME_SPEED and removes any that have scrolled off-screen.
+ *
+ * @param {number} deltaTime - Seconds elapsed since last frame
+ */
+function updateObstacles(deltaTime) {
+  const speed = CONFIG.GAME_SPEED;
+  for (const obs of obstacles) {
+    obs.x -= speed * deltaTime;
+  }
+  obstacles = obstacles.filter(obs => obs.x + obs.width > 0);
+}
+
+// ---------------------------------------------------------------------------
 // Per-state update helpers
 // ---------------------------------------------------------------------------
 
@@ -269,17 +382,22 @@ function gameLoop(timestamp) {
 
   } else if (gameState === 'RUNNING') {
     updateDistance(deltaTime);
+    updateSpawning(deltaTime);
+    updateObstacles(deltaTime);
     updatePlayer(player, deltaTime);
+    drawObstacles(ctx, obstacles);
     drawPlayer(ctx, player, CONFIG);
     drawHUD(ctx, CONFIG, distance);
 
   } else if (gameState === 'PAUSED') {
+    drawObstacles(ctx, obstacles);   // frozen in place (no update)
     drawPlayer(ctx, player, CONFIG); // frozen position (no updatePlayer call)
     drawHUD(ctx, CONFIG, distance);
     drawPauseOverlay(ctx, CONFIG);
 
   } else if (gameState === 'GAME_OVER') {
     updateGameOver(deltaTime);
+    drawObstacles(ctx, obstacles);   // frozen in place (no update)
     // Flash player during freeze delay, then show steadily
     if (gameOverTimer < CONFIG.GAME_OVER_FREEZE_DELAY) {
       const flashVisible = Math.floor(gameOverTimer / CONFIG.FLASH_INTERVAL) % 2 === 0;
@@ -303,6 +421,9 @@ window.__game = {
   get gameOverTimer()  { return gameOverTimer; },
   get groundOffset()   { return groundOffset; },
   get player()         { return player; },
+  get obstacles()      { return obstacles; },
+  get gameElapsed()    { return gameElapsed; },
+  get spawnTimer()     { return spawnTimer; },
 };
 
 // Kick off the loop -- runs continuously even on the start screen for the

@@ -229,6 +229,24 @@ export function drawGameOver(ctx, config, gameOverTimer) {
 }
 
 // ---------------------------------------------------------------------------
+// Obstacle drawing
+// ---------------------------------------------------------------------------
+
+/**
+ * Draws all active obstacles as filled colored rectangles.
+ * Uses Math.round on positions for crisp pixel-aligned edges.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Array} obstacles - Array of obstacle state objects ({x, y, width, height, color})
+ */
+export function drawObstacles(ctx, obstacles) {
+  for (const obs of obstacles) {
+    ctx.fillStyle = obs.color;
+    ctx.fillRect(Math.round(obs.x), Math.round(obs.y), obs.width, obs.height);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Zebra character drawing -- procedural Canvas 2D, no external images
 // ---------------------------------------------------------------------------
 
