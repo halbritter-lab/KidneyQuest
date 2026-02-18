@@ -19,18 +19,24 @@ export const inputState = {
  * @param {HTMLCanvasElement} canvas - The game canvas to attach listeners to.
  * @param {Function} onAction - Callback invoked on Space, ArrowUp, or touchstart.
  * @param {Function} onActionRelease - Callback invoked on Space/ArrowUp keyup or touchend.
+ * @param {Function} onPause - Callback invoked on Escape or P keydown (default no-op).
  */
-export function setupInput(canvas, onAction, onActionRelease) {
+export function setupInput(canvas, onAction, onActionRelease, onPause = () => {}) {
   // Ensure canvas is focusable and auto-focused so keydown events fire on it
   canvas.tabIndex = 0;
   canvas.focus();
 
-  // Keyboard: Space and ArrowUp trigger the action callback
+  // Keyboard: Space and ArrowUp trigger the action callback;
+  // Escape and P trigger the pause callback
   canvas.addEventListener('keydown', (e) => {
     if (e.code === 'Space' || e.code === 'ArrowUp') {
       e.preventDefault(); // Prevent page scroll
       inputState.lastAction = performance.now();
       onAction();
+    }
+    if (e.code === 'Escape' || e.code === 'KeyP') {
+      e.preventDefault();
+      onPause();
     }
   });
 

@@ -2,7 +2,11 @@
 // Wires config, input, renderer, and player physics into a working game loop.
 
 import CONFIG from './config.js';
-import { setupCanvas, resizeCanvas, clearCanvas, drawText, drawGround, drawPlayer } from './renderer.js';
+import {
+  setupCanvas, resizeCanvas, clearCanvas, drawText,
+  drawGround, drawPlayer,
+  drawCountdown, drawPauseOverlay, drawGameOver, drawHUD,
+} from './renderer.js';
 import { setupInput } from './input.js';
 import { createPlayer, updatePlayer, handleJumpPress, handleJumpRelease } from './player.js';
 
@@ -29,14 +33,64 @@ window.addEventListener('resize', () => resizeCanvas(canvas, CONFIG));
 const player = createPlayer(CONFIG);
 
 // ---------------------------------------------------------------------------
-// Game state
+// Game state -- five-state machine
+//
+//   READY      : start screen shown, waiting for first Space press
+//   COUNTDOWN  : 3-2-1-Go! countdown before game begins
+//   RUNNING    : game active, player physics and distance tracking running
+//   PAUSED     : game frozen (Escape / P toggles in/out)
+//   GAME_OVER  : end screen with flash, then Space to restart
 // ---------------------------------------------------------------------------
 
-// Simple string state machine.
-// READY: start screen shown, waiting for first Space press
-// RUNNING: game active, player physics running
-// GAME_OVER: end screen (Phase 5+)
 let gameState = 'READY';
+
+// Countdown sub-state
+let countdownValue = 3;
+let countdownTimer = 0;
+
+// Game over sub-state
+let gameOverTimer = 0;
+
+// Distance tracking (in pixels; displayed as meters via PX_PER_METER)
+let distance = 0;
+
+// Cumulative ground scroll distance in pixels.
+// Increments at READY_SCROLL_SPEED on the start screen, at GAME_SPEED while running.
+let groundOffset = 0;
+
+// ---------------------------------------------------------------------------
+// State transition helpers
+// ---------------------------------------------------------------------------
+
+function startCountdown() {
+  countdownValue = 3;
+  countdownTimer = 0;
+  gameState = 'COUNTDOWN';
+}
+
+function triggerGameOver() {
+  gameOverTimer = 0;
+  gameState = 'GAME_OVER';
+}
+// Expose for testing via browser console
+window.triggerGameOver = triggerGameOver;
+
+function togglePause() {
+  if (gameState === 'RUNNING') {
+    gameState = 'PAUSED';
+    lastTime = 0; // CRITICAL: prevents huge delta on resume
+  } else if (gameState === 'PAUSED') {
+    gameState = 'RUNNING';
+    lastTime = 0; // CRITICAL: prevents huge delta on resume
+  }
+}
+
+function resetGame() {
+  distance = 0;
+  groundOffset = 0;
+  Object.assign(player, createPlayer(CONFIG));
+  gameState = 'READY';
+}
 
 // ---------------------------------------------------------------------------
 // Input -- action callbacks
@@ -44,17 +98,16 @@ let gameState = 'READY';
 
 function handleAction() {
   if (gameState === 'READY') {
-    gameState = 'RUNNING';
-    console.log('Game started!');
-    // Note: first Space press starts the game; it does NOT also trigger a jump.
-    // Subsequent Space presses during RUNNING call handleJumpPress below.
+    startCountdown(); // transition through countdown, NOT directly to RUNNING
   } else if (gameState === 'RUNNING') {
     handleJumpPress(player);
   } else if (gameState === 'GAME_OVER') {
-    // Restart: reset player state and return to READY
-    Object.assign(player, createPlayer(CONFIG));
-    gameState = 'READY';
+    // Only accept restart after freeze delay + cooldown have elapsed
+    if (gameOverTimer >= CONFIG.GAME_OVER_FREEZE_DELAY + CONFIG.GAME_OVER_COOLDOWN) {
+      resetGame();
+    }
   }
+  // COUNTDOWN and PAUSED: ignore Space
 }
 
 function handleActionRelease() {
@@ -63,7 +116,13 @@ function handleActionRelease() {
   }
 }
 
-setupInput(canvas, handleAction, handleActionRelease);
+function handlePause() {
+  if (gameState === 'RUNNING' || gameState === 'PAUSED') {
+    togglePause();
+  }
+}
+
+setupInput(canvas, handleAction, handleActionRelease, handlePause);
 
 // ---------------------------------------------------------------------------
 // Horizontal movement -- ArrowLeft / ArrowRight
@@ -132,45 +191,104 @@ function renderStartScreen(ctx, timestamp) {
 }
 
 // ---------------------------------------------------------------------------
+// Per-state update helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Advances the countdown timer; transitions to RUNNING when countdown expires.
+ * Uses delta-time accumulator (no setTimeout).
+ *
+ * @param {number} deltaTime - Seconds elapsed since last frame
+ */
+function updateCountdown(deltaTime) {
+  countdownTimer += deltaTime;
+  if (countdownTimer >= CONFIG.COUNTDOWN_STEP) {
+    countdownValue -= 1;
+    countdownTimer -= CONFIG.COUNTDOWN_STEP; // carry-over for accuracy
+    if (countdownValue < 0) {
+      // Countdown finished: start the game
+      gameState = 'RUNNING';
+      distance = 0;
+    }
+  }
+}
+
+/**
+ * Accumulates game-over elapsed time (used for flash and cooldown logic).
+ *
+ * @param {number} deltaTime - Seconds elapsed since last frame
+ */
+function updateGameOver(deltaTime) {
+  gameOverTimer += deltaTime;
+}
+
+/**
+ * Advances the distance counter while RUNNING.
+ *
+ * @param {number} deltaTime - Seconds elapsed since last frame
+ */
+function updateDistance(deltaTime) {
+  distance += CONFIG.GAME_SPEED * deltaTime;
+}
+
+// ---------------------------------------------------------------------------
 // Game loop
 // ---------------------------------------------------------------------------
 
 let lastTime = 0;
 
-// Cumulative ground scroll distance in pixels.
-// Increments at READY_SCROLL_SPEED on the start screen and at GAME_SPEED while running,
-// creating a continuous motion illusion via the dash markers.
-let groundOffset = 0;
-
 function gameLoop(timestamp) {
   // Delta time in seconds, capped at 0.1s to prevent huge physics jumps on
-  // tab switch or browser throttling
+  // tab switch, browser throttling, or first frame after pause resume
   const deltaTime = Math.min((timestamp - lastTime) / 1000, 0.1);
   lastTime = timestamp;
 
-  // Advance ground scroll based on current game state
-  if (gameState === 'READY') {
+  clearCanvas(ctx, CONFIG);
+
+  // Update ground scroll based on state
+  // PAUSED and GAME_OVER: groundOffset unchanged (ground freezes)
+  if (gameState === 'READY' || gameState === 'COUNTDOWN') {
     groundOffset += CONFIG.READY_SCROLL_SPEED * deltaTime;
   } else if (gameState === 'RUNNING') {
     groundOffset += CONFIG.GAME_SPEED * deltaTime;
   }
 
-  // Clear canvas to background colour each frame
-  clearCanvas(ctx, CONFIG);
-
   // Scrolling ground is always visible regardless of state
   drawGround(ctx, CONFIG, groundOffset);
 
+  // State-specific update and render
   if (gameState === 'READY') {
     renderStartScreen(ctx, timestamp);
-  }
 
-  if (gameState === 'RUNNING') {
-    // Advance physics for this frame
+  } else if (gameState === 'COUNTDOWN') {
+    updateCountdown(deltaTime);
+    drawCountdown(ctx, CONFIG, countdownValue, countdownTimer);
+    // Draw player in idle position during countdown (physics still ticks)
     updatePlayer(player, deltaTime);
-
-    // Render player rectangle with squash/stretch
     drawPlayer(ctx, player, CONFIG);
+
+  } else if (gameState === 'RUNNING') {
+    updateDistance(deltaTime);
+    updatePlayer(player, deltaTime);
+    drawPlayer(ctx, player, CONFIG);
+    drawHUD(ctx, CONFIG, distance);
+
+  } else if (gameState === 'PAUSED') {
+    drawPlayer(ctx, player, CONFIG); // frozen position (no updatePlayer call)
+    drawHUD(ctx, CONFIG, distance);
+    drawPauseOverlay(ctx, CONFIG);
+
+  } else if (gameState === 'GAME_OVER') {
+    updateGameOver(deltaTime);
+    // Flash player during freeze delay, then show steadily
+    if (gameOverTimer < CONFIG.GAME_OVER_FREEZE_DELAY) {
+      const flashVisible = Math.floor(gameOverTimer / CONFIG.FLASH_INTERVAL) % 2 === 0;
+      if (flashVisible) drawPlayer(ctx, player, CONFIG);
+    } else {
+      drawPlayer(ctx, player, CONFIG);
+    }
+    drawHUD(ctx, CONFIG, distance);
+    drawGameOver(ctx, CONFIG, gameOverTimer);
   }
 
   requestAnimationFrame(gameLoop);
