@@ -193,39 +193,94 @@ export function drawPauseOverlay(ctx, config) {
 }
 
 /**
- * Draws the game over screen in two phases:
- *   Phase 1 (gameOverTimer < GAME_OVER_FREEZE_DELAY): no text (flash handled by main.js)
- *   Phase 2 (>= GAME_OVER_FREEZE_DELAY): "Game Over" text appears
+ * Draws the game over screen in three phases:
+ *   Phase 1 (gameOverTimer < GAME_OVER_FREEZE_DELAY): semi-transparent overlay only
+ *   Phase 2 (>= GAME_OVER_FREEZE_DELAY): "Game Over" text, killer obstacle name, distance score
  *   Phase 3 (>= GAME_OVER_FREEZE_DELAY + GAME_OVER_COOLDOWN): pulsing restart prompt
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {Object} config - Game CONFIG object
  * @param {number} gameOverTimer - Seconds elapsed since game over was triggered
+ * @param {string|null} killerObstacleName - displayName of the obstacle that ended the run
+ * @param {number} distance - Cumulative distance in pixels for score display
  */
-export function drawGameOver(ctx, config, gameOverTimer) {
-  // Phase 1: silent flash -- no text rendered here
+export function drawGameOver(ctx, config, gameOverTimer, killerObstacleName, distance) {
+  const cx = config.CANVAS_WIDTH / 2;
+  const cy = config.CANVAS_HEIGHT / 2;
+
+  // Semi-transparent dark overlay covering the frozen game state
+  ctx.save();
+  ctx.fillStyle = `rgba(0, 0, 0, ${config.GAME_OVER_OVERLAY_ALPHA})`;
+  ctx.fillRect(0, 0, config.CANVAS_WIDTH, config.CANVAS_HEIGHT);
+  ctx.restore();
+
+  // Phase 1: overlay is visible but no text yet (allows death animation to settle)
   if (gameOverTimer < config.GAME_OVER_FREEZE_DELAY) {
     return;
   }
 
-  const cx = config.CANVAS_WIDTH / 2;
-  const cy = config.CANVAS_HEIGHT / 2;
-
   // Phase 2+: "Game Over" centred in red
-  drawText(ctx, 'Game Over', cx, cy - 40, {
+  drawText(ctx, 'Game Over', cx, cy - 60, {
     font: 'bold 72px sans-serif',
     color: config.GAME_OVER_COLOR,
   });
 
-  // Phase 3: pulsing "Press Space to restart" after cooldown expires
+  // Killer obstacle name -- what ended the run
+  if (killerObstacleName) {
+    drawText(ctx, `Hit a ${killerObstacleName}!`, cx, cy + 0, {
+      font: 'bold 32px sans-serif',
+      color: '#FFAA44',
+    });
+  }
+
+  // Distance score
+  const meters = Math.floor((distance || 0) / config.PX_PER_METER);
+  drawText(ctx, `Distance: ${meters}m`, cx, cy + 46, {
+    font: '28px sans-serif',
+    color: '#FFFFFF',
+  });
+
+  // Phase 3: pulsing "Press Space to Play Again" after cooldown expires
   if (gameOverTimer >= config.GAME_OVER_FREEZE_DELAY + config.GAME_OVER_COOLDOWN) {
     const alpha = 0.3 + 0.7 * Math.abs(Math.sin(gameOverTimer * 3));
-    drawText(ctx, 'Press Space to restart', cx, cy + 40, {
+    drawText(ctx, 'Press Space to Play Again', cx, cy + 100, {
       font: '28px sans-serif',
       color: '#FFFFFF',
       alpha,
     });
   }
+}
+
+/**
+ * Screen shake wrapper for the death animation.
+ * Translates the entire canvas by a random offset that decays linearly over
+ * DEATH_SHAKE_DURATION. After the shake period, draws normally with no offset.
+ * Math.round on offsets prevents sub-pixel blurring.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Object} config - Game CONFIG object
+ * @param {number} deathTimer - Seconds elapsed since death triggered
+ * @param {Function} drawFn - Callback that performs the actual draw calls
+ */
+export function drawWithShake(ctx, config, deathTimer, drawFn) {
+  const duration = config.DEATH_SHAKE_DURATION;
+  const amplitude = config.SHAKE_AMPLITUDE;
+
+  if (deathTimer >= duration) {
+    drawFn();
+    return;
+  }
+
+  const progress = deathTimer / duration;
+  const currentAmplitude = amplitude * (1.0 - progress);
+
+  const dx = (Math.random() * 2 - 1) * currentAmplitude;
+  const dy = (Math.random() * 2 - 1) * currentAmplitude * 0.6;
+
+  ctx.save();
+  ctx.translate(Math.round(dx), Math.round(dy));
+  drawFn();
+  ctx.restore();
 }
 
 // ---------------------------------------------------------------------------

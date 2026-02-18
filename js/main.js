@@ -6,6 +6,7 @@ import {
   setupCanvas, resizeCanvas, clearCanvas, drawText,
   drawGround, drawPlayer, drawObstacles,
   drawCountdown, drawPauseOverlay, drawGameOver, drawHUD,
+  drawWithShake,
 } from './renderer.js';
 import { setupInput } from './input.js';
 import { createPlayer, updatePlayer, handleJumpPress, handleJumpRelease } from './player.js';
@@ -64,6 +65,11 @@ let spawnTimer = 0;
 let spawnInterval = CONFIG.SPAWN_BASE_INTERVAL;
 let gameElapsed = 0;  // seconds since RUNNING started (for progressive unlocking)
 
+// Collision and death state (Phase 4 Plan 02)
+let deathTimer = 0;
+let killerObstacleName = null;
+let nearMissTimer = 0;
+
 // ---------------------------------------------------------------------------
 // State transition helpers
 // ---------------------------------------------------------------------------
@@ -99,6 +105,9 @@ function resetGame() {
   spawnTimer = 0;
   spawnInterval = CONFIG.SPAWN_BASE_INTERVAL;
   gameElapsed = 0;
+  deathTimer = 0;
+  killerObstacleName = null;
+  nearMissTimer = 0;
   gameState = 'READY';
 }
 
@@ -117,7 +126,7 @@ function handleAction() {
       resetGame();
     }
   }
-  // COUNTDOWN and PAUSED: ignore Space
+  // COUNTDOWN, PAUSED, and DYING: ignore Space
 }
 
 function handleActionRelease() {
@@ -304,6 +313,91 @@ function updateObstacles(deltaTime) {
 }
 
 // ---------------------------------------------------------------------------
+// Collision detection helpers (Phase 4 Plan 02)
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns a shrunk bounding box for an entity by reducing each side by
+ * shrinkFraction * dimension. Shrinking by 0.15 removes 30% total from
+ * each axis, making near-misses feel exciting rather than unfair.
+ *
+ * @param {Object} entity - Object with x, y, width, height
+ * @param {number} shrinkFraction - Fraction of dimension to remove per side
+ * @returns {{ x, y, width, height }} Shrunk hitbox
+ */
+function getHitbox(entity, shrinkFraction) {
+  const sx = entity.width * shrinkFraction;
+  const sy = entity.height * shrinkFraction;
+  return {
+    x: entity.x + sx,
+    y: entity.y + sy,
+    width: entity.width - 2 * sx,
+    height: entity.height - 2 * sy,
+  };
+}
+
+/**
+ * Standard axis-aligned bounding box overlap test.
+ * Returns true if rectangle a and rectangle b overlap.
+ *
+ * @param {{ x, y, width, height }} a
+ * @param {{ x, y, width, height }} b
+ * @returns {boolean}
+ */
+function aabbOverlap(a, b) {
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  );
+}
+
+/**
+ * Checks all active obstacles for collision with the player (using shrunk hitboxes)
+ * and also for near-miss (visual bounds overlap but hitboxes did not).
+ *
+ * @param {Object} player - Player state object with x, y
+ * @returns {{ collision: Object|null, nearMiss: boolean }}
+ */
+function checkCollisions(player) {
+  const playerHitbox = getHitbox(
+    { x: player.x, y: player.y, width: CONFIG.PLAYER_WIDTH, height: CONFIG.PLAYER_HEIGHT },
+    CONFIG.PLAYER_HITBOX_SHRINK
+  );
+
+  for (const obs of obstacles) {
+    const obsHitbox = getHitbox(obs, obs.hitboxShrink);
+    if (aabbOverlap(playerHitbox, obsHitbox)) {
+      return { collision: obs, nearMiss: false };
+    }
+  }
+
+  // No collision -- check for near-miss (visual bounds overlap but hitbox didn't)
+  const playerVisual = { x: player.x, y: player.y, width: CONFIG.PLAYER_WIDTH, height: CONFIG.PLAYER_HEIGHT };
+  for (const obs of obstacles) {
+    const obsVisual = { x: obs.x, y: obs.y, width: obs.width, height: obs.height };
+    if (aabbOverlap(playerVisual, obsVisual)) {
+      return { collision: null, nearMiss: true };
+    }
+  }
+
+  return { collision: null, nearMiss: false };
+}
+
+/**
+ * Transitions the game from RUNNING into the DYING state.
+ * Records which obstacle killed the player and resets the death animation timer.
+ *
+ * @param {Object} obstacle - The obstacle that caused the collision
+ */
+function triggerDeath(obstacle) {
+  deathTimer = 0;
+  killerObstacleName = obstacle.displayName;
+  gameState = 'DYING';
+}
+
+// ---------------------------------------------------------------------------
 // Per-state update helpers
 // ---------------------------------------------------------------------------
 
@@ -367,7 +461,10 @@ function gameLoop(timestamp) {
   }
 
   // Scrolling ground is always visible regardless of state
-  drawGround(ctx, CONFIG, groundOffset);
+  // DYING state draws ground inside drawWithShake to apply screen shake
+  if (gameState !== 'DYING') {
+    drawGround(ctx, CONFIG, groundOffset);
+  }
 
   // State-specific update and render
   if (gameState === 'READY') {
@@ -385,9 +482,61 @@ function gameLoop(timestamp) {
     updateSpawning(deltaTime);
     updateObstacles(deltaTime);
     updatePlayer(player, deltaTime);
-    drawObstacles(ctx, obstacles);
-    drawPlayer(ctx, player, CONFIG);
-    drawHUD(ctx, CONFIG, distance);
+
+    // Advance near-miss flash timer
+    if (nearMissTimer > 0) nearMissTimer -= deltaTime;
+
+    // Collision and near-miss detection
+    const collisionResult = checkCollisions(player);
+    if (collisionResult.collision) {
+      triggerDeath(collisionResult.collision);
+      // Skip rest of RUNNING rendering -- DYING state handles the next frame
+    } else {
+      if (collisionResult.nearMiss && nearMissTimer <= 0) {
+        nearMissTimer = CONFIG.NEAR_MISS_FLASH_DURATION;
+      }
+
+      drawObstacles(ctx, obstacles);
+      drawPlayer(ctx, player, CONFIG);
+
+      // Near-miss yellow flash overlay on the player
+      if (nearMissTimer > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.4;
+        ctx.fillStyle = CONFIG.NEAR_MISS_FLASH_COLOR;
+        ctx.fillRect(
+          Math.round(player.x),
+          Math.round(player.y),
+          CONFIG.PLAYER_WIDTH,
+          CONFIG.PLAYER_HEIGHT
+        );
+        ctx.restore();
+      }
+
+      drawHUD(ctx, CONFIG, distance);
+    }
+
+  } else if (gameState === 'DYING') {
+    deathTimer += deltaTime;
+
+    if (deathTimer >= CONFIG.DEATH_ANIMATION_DURATION) {
+      gameState = 'GAME_OVER';
+      gameOverTimer = 0;
+    }
+
+    // Render all game content with screen shake; player flashes on/off
+    drawWithShake(ctx, CONFIG, deathTimer, () => {
+      drawGround(ctx, CONFIG, groundOffset);
+      drawObstacles(ctx, obstacles);
+
+      // Player flash: visible every other DEATH_FLASH_INTERVAL
+      const flashVisible = Math.floor(deathTimer / CONFIG.DEATH_FLASH_INTERVAL) % 2 === 0;
+      if (flashVisible) {
+        drawPlayer(ctx, player, CONFIG);
+      }
+
+      drawHUD(ctx, CONFIG, distance);
+    });
 
   } else if (gameState === 'PAUSED') {
     drawObstacles(ctx, obstacles);   // frozen in place (no update)
@@ -406,7 +555,7 @@ function gameLoop(timestamp) {
       drawPlayer(ctx, player, CONFIG);
     }
     drawHUD(ctx, CONFIG, distance);
-    drawGameOver(ctx, CONFIG, gameOverTimer);
+    drawGameOver(ctx, CONFIG, gameOverTimer, killerObstacleName, distance);
   }
 
   requestAnimationFrame(gameLoop);
@@ -414,16 +563,19 @@ function gameLoop(timestamp) {
 
 // Expose game state for testing and workshop debugging
 window.__game = {
-  get state()          { return gameState; },
-  get distance()       { return distance; },
-  get countdownValue() { return countdownValue; },
-  get countdownTimer() { return countdownTimer; },
-  get gameOverTimer()  { return gameOverTimer; },
-  get groundOffset()   { return groundOffset; },
-  get player()         { return player; },
-  get obstacles()      { return obstacles; },
-  get gameElapsed()    { return gameElapsed; },
-  get spawnTimer()     { return spawnTimer; },
+  get state()               { return gameState; },
+  get distance()            { return distance; },
+  get countdownValue()      { return countdownValue; },
+  get countdownTimer()      { return countdownTimer; },
+  get gameOverTimer()       { return gameOverTimer; },
+  get groundOffset()        { return groundOffset; },
+  get player()              { return player; },
+  get obstacles()           { return obstacles; },
+  get gameElapsed()         { return gameElapsed; },
+  get spawnTimer()          { return spawnTimer; },
+  get deathTimer()          { return deathTimer; },
+  get killerObstacleName()  { return killerObstacleName; },
+  get nearMissTimer()       { return nearMissTimer; },
 };
 
 // Kick off the loop -- runs continuously even on the start screen for the
