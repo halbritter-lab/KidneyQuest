@@ -6,7 +6,7 @@ import {
   setupCanvas, resizeCanvas, clearCanvas, drawText,
   drawGround, drawPlayer, drawObstacles, drawGenes,
   drawCountdown, drawPauseOverlay, drawGameOver, drawHUD,
-  drawWithShake,
+  drawWithShake, drawPopups, drawGeneFlash, drawGameOverScreen,
 } from './renderer.js';
 import { setupInput } from './input.js';
 import { createPlayer, updatePlayer, handleJumpPress, handleJumpRelease } from './player.js';
@@ -81,6 +81,56 @@ let collectedGenes = [];   // array of typeData objects for game over education 
 // Difficulty ramp (Phase 5)
 let currentSpeed = CONFIG.GAME_SPEED;
 
+// Floating popup particles (Phase 5)
+let popups = [];
+
+// Gene name flash (Phase 5)
+let geneFlashName = null;
+let geneFlashTimer = 0;
+
+// High score (Phase 5)
+let highScore = 0;
+
+// ---------------------------------------------------------------------------
+// localStorage high score persistence (Phase 5)
+// ---------------------------------------------------------------------------
+
+const LS_KEY = 'kidneyquest_highscore';
+
+function loadHighScore() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    const parsed = parseInt(raw, 10);
+    return isNaN(parsed) ? 0 : parsed;
+  } catch (e) {
+    return 0;
+  }
+}
+
+function saveHighScore(score) {
+  try {
+    const current = loadHighScore();
+    if (score > current) {
+      localStorage.setItem(LS_KEY, String(score));
+      return true;
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Initialise high score from localStorage on load
+highScore = loadHighScore();
+
+// ---------------------------------------------------------------------------
+// Score helper (Phase 5)
+// ---------------------------------------------------------------------------
+
+function getTotalScore() {
+  return geneScore + Math.floor(distance / CONFIG.PX_PER_METER);
+}
+
 // ---------------------------------------------------------------------------
 // State transition helpers
 // ---------------------------------------------------------------------------
@@ -92,6 +142,8 @@ function startCountdown() {
 }
 
 function triggerGameOver() {
+  const isNewRecord = saveHighScore(getTotalScore());
+  highScore = loadHighScore();
   gameOverTimer = 0;
   gameState = 'GAME_OVER';
 }
@@ -124,6 +176,10 @@ function resetGame() {
   geneScore = 0;
   collectedGenes = [];
   currentSpeed = CONFIG.GAME_SPEED;
+  popups = [];
+  geneFlashName = null;
+  geneFlashTimer = 0;
+  highScore = loadHighScore();
   gameState = 'READY';
 }
 
@@ -137,8 +193,8 @@ function handleAction() {
   } else if (gameState === 'RUNNING') {
     handleJumpPress(player);
   } else if (gameState === 'GAME_OVER') {
-    // Only accept restart after freeze delay + cooldown have elapsed
-    if (gameOverTimer >= CONFIG.GAME_OVER_FREEZE_DELAY + CONFIG.GAME_OVER_COOLDOWN) {
+    // Only accept restart after cooldown has elapsed
+    if (gameOverTimer >= CONFIG.RESTART_COOLDOWN) {
       resetGame();
     }
   }
@@ -422,16 +478,16 @@ function checkGeneCollisions(player) {
 }
 
 /**
- * Awards points and records the collected gene type for the end-of-game education screen.
- * Plan 02 will add collection popup and HUD flash effects.
+ * Awards points, records the collected gene type, spawns a floating popup,
+ * and triggers the gene name flash effect near the HUD.
  *
  * @param {Object} gene - Collected gene state object
  */
 function onGeneCollected(gene) {
   geneScore += gene.points;
   collectedGenes.push(gene.typeData);
-  // Plan 02 will add: spawnCollectionPopup(gene.x, gene.y, '+' + gene.points);
-  // Plan 02 will add: triggerGeneNameFlash(gene.typeData.name);
+  spawnCollectionPopup(gene.x, gene.y, '+' + gene.points);
+  triggerGeneNameFlash(gene.typeData.name);
 }
 
 /**
@@ -442,6 +498,61 @@ function onGeneCollected(gene) {
  */
 function updateDifficultyRamp(deltaTime) {
   currentSpeed = Math.min(currentSpeed + CONFIG.SPEED_INCREMENT * deltaTime, CONFIG.MAX_SPEED);
+}
+
+// ---------------------------------------------------------------------------
+// Popup particle helpers (Phase 5)
+// ---------------------------------------------------------------------------
+
+/**
+ * Spawns a floating text popup at the given position that drifts upward and fades out.
+ *
+ * @param {number} x - Horizontal position in CSS pixels
+ * @param {number} y - Vertical position in CSS pixels
+ * @param {string} text - Text to display (e.g. '+10')
+ */
+function spawnCollectionPopup(x, y, text) {
+  popups.push({ x, y, text, alpha: 1.0, vy: -60 });
+}
+
+/**
+ * Advances all popup particles: drifts them upward and fades alpha.
+ * Removes fully transparent popups.
+ *
+ * @param {number} deltaTime - Seconds elapsed since last frame
+ */
+function updatePopups(deltaTime) {
+  for (const p of popups) {
+    p.y += p.vy * deltaTime;
+    p.alpha -= 1.2 * deltaTime;
+  }
+  popups = popups.filter(p => p.alpha > 0);
+}
+
+// ---------------------------------------------------------------------------
+// Gene name flash helpers (Phase 5)
+// ---------------------------------------------------------------------------
+
+/**
+ * Triggers a brief gene name flash display near the HUD score counter.
+ *
+ * @param {string} name - Gene name (e.g. 'PKD1')
+ */
+function triggerGeneNameFlash(name) {
+  geneFlashName = name + '!';
+  geneFlashTimer = CONFIG.GENE_LABEL_FLASH_DURATION;
+}
+
+/**
+ * Counts down the gene name flash timer, clearing the name when it expires.
+ *
+ * @param {number} deltaTime - Seconds elapsed since last frame
+ */
+function updateGeneFlash(deltaTime) {
+  if (geneFlashTimer > 0) {
+    geneFlashTimer = Math.max(0, geneFlashTimer - deltaTime);
+    if (geneFlashTimer === 0) geneFlashName = null;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -616,6 +727,8 @@ function gameLoop(timestamp) {
     updateObstacles(deltaTime);
     updateGeneSpawning(deltaTime);
     updateGenes(deltaTime);
+    updatePopups(deltaTime);
+    updateGeneFlash(deltaTime);
     updatePlayer(player, deltaTime);
 
     // Advance near-miss flash timer
@@ -652,15 +765,21 @@ function gameLoop(timestamp) {
         ctx.restore();
       }
 
-      drawHUD(ctx, CONFIG, distance);
+      drawHUD(ctx, CONFIG, distance, collectedGenes.length, getTotalScore());
+      drawPopups(ctx, popups);
+      drawGeneFlash(ctx, CONFIG, geneFlashName, geneFlashTimer);
     }
 
   } else if (gameState === 'DYING') {
     deathTimer += deltaTime;
+    updatePopups(deltaTime);
 
     if (deathTimer >= CONFIG.DEATH_ANIMATION_DURATION) {
-      gameState = 'GAME_OVER';
+      // Transition to GAME_OVER: save high score, set timer
+      const isNewRecord = saveHighScore(getTotalScore());
+      highScore = loadHighScore();
       gameOverTimer = 0;
+      gameState = 'GAME_OVER';
     }
 
     // Render all game content with screen shake; player flashes on/off
@@ -675,14 +794,16 @@ function gameLoop(timestamp) {
         drawPlayer(ctx, player, CONFIG);
       }
 
-      drawHUD(ctx, CONFIG, distance);
+      drawHUD(ctx, CONFIG, distance, collectedGenes.length, getTotalScore());
+      drawPopups(ctx, popups);
     });
 
   } else if (gameState === 'PAUSED') {
     drawObstacles(ctx, obstacles);   // frozen in place (no update)
     drawGenes(ctx, genes);           // frozen in place (no update)
     drawPlayer(ctx, player, CONFIG); // frozen position (no updatePlayer call)
-    drawHUD(ctx, CONFIG, distance);
+    drawHUD(ctx, CONFIG, distance, collectedGenes.length, getTotalScore());
+    drawPopups(ctx, popups);
     drawPauseOverlay(ctx, CONFIG);
 
   } else if (gameState === 'GAME_OVER') {
@@ -696,8 +817,16 @@ function gameLoop(timestamp) {
     } else {
       drawPlayer(ctx, player, CONFIG);
     }
-    drawHUD(ctx, CONFIG, distance);
-    drawGameOver(ctx, CONFIG, gameOverTimer, killerObstacleName, distance);
+    drawGameOverScreen(ctx, CONFIG, {
+      distance: distance,
+      geneScore: geneScore,
+      totalScore: getTotalScore(),
+      highScore: highScore,
+      isNewRecord: getTotalScore() >= highScore && highScore > 0,
+      collectedGenes: collectedGenes,
+      gameOverTimer: gameOverTimer,
+      restartCooldown: CONFIG.RESTART_COOLDOWN,
+    });
   }
 
   requestAnimationFrame(gameLoop);
@@ -723,6 +852,9 @@ window.__game = {
   get geneScore()           { return geneScore; },
   get collectedGenes()      { return collectedGenes; },
   get currentSpeed()        { return currentSpeed; },
+  get popups()              { return popups; },
+  get geneFlashName()       { return geneFlashName; },
+  get highScore()           { return highScore; },
 };
 
 // Kick off the loop -- runs continuously even on the start screen for the

@@ -119,20 +119,183 @@ export function drawGround(ctx, config, groundOffset) {
 // ---------------------------------------------------------------------------
 
 /**
- * Draws the distance HUD counter in the top-right corner.
+ * Draws the HUD in the top-right corner: distance, gene count, and total score.
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {Object} config - Game CONFIG object
  * @param {number} distance - Cumulative scroll distance in pixels
+ * @param {number} geneCount - Number of genes collected this run
+ * @param {number} totalScore - Combined distance + gene score
  */
-export function drawHUD(ctx, config, distance) {
+export function drawHUD(ctx, config, distance, geneCount, totalScore) {
   const meters = Math.floor(distance / config.PX_PER_METER);
-  drawText(ctx, `${meters}m`, config.CANVAS_WIDTH - 30, 40, {
-    font: 'bold 28px sans-serif',
-    color: config.HUD_COLOR,
-    align: 'right',
-    baseline: 'top',
-  });
+
+  drawText(ctx, meters + 'm | Genes: ' + geneCount,
+    config.CANVAS_WIDTH - 20, 30,
+    { font: 'bold 22px sans-serif', color: '#FFFFFF', align: 'right', baseline: 'top' }
+  );
+
+  drawText(ctx, 'Score: ' + totalScore,
+    config.CANVAS_WIDTH - 20, 58,
+    { font: '18px sans-serif', color: '#FFD700', align: 'right', baseline: 'top' }
+  );
+}
+
+/**
+ * Draws all active floating popup particles (e.g. '+10' on gene collection).
+ * Each popup drifts upward and fades out as its alpha decreases.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Array} popups - Array of popup objects ({x, y, text, alpha, vy})
+ */
+export function drawPopups(ctx, popups) {
+  for (const p of popups) {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, p.alpha);
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.text, Math.round(p.x), Math.round(p.y));
+    ctx.restore();
+  }
+}
+
+/**
+ * Draws a brief gene name flash near the HUD score counter when a gene is collected.
+ * Alpha fades in over the first 0.3 seconds and then holds.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Object} config - Game CONFIG object
+ * @param {string|null} geneFlashName - Gene name to display (e.g. 'PKD1!'), or null
+ * @param {number} geneFlashTimer - Remaining display time in seconds
+ */
+export function drawGeneFlash(ctx, config, geneFlashName, geneFlashTimer) {
+  if (!geneFlashName || geneFlashTimer <= 0) return;
+  const alpha = Math.min(1.0, geneFlashTimer / 0.3);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'top';
+  ctx.fillText(geneFlashName, config.CANVAS_WIDTH - 20, 84);
+  ctx.restore();
+}
+
+/**
+ * Draws the full educational game over screen with score breakdown, gene cards,
+ * high score comparison, and a pulsing restart prompt after the cooldown expires.
+ *
+ * Gene cards display up to the 5 most recent unique genes collected, each showing:
+ * - Gene name and point value
+ * - Disease name and inheritance pattern
+ * - Brief description (truncated to 90 chars)
+ * - OMIM ID
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Object} config - Game CONFIG object
+ * @param {Object} options
+ * @param {number}  options.distance       - Cumulative distance in pixels
+ * @param {number}  options.geneScore      - Score from collected genes
+ * @param {number}  options.totalScore     - Combined distance + gene score
+ * @param {number}  options.highScore      - All-time high score from localStorage
+ * @param {boolean} options.isNewRecord    - Whether this run set a new high score
+ * @param {Array}   options.collectedGenes - Array of gene typeData objects collected
+ * @param {number}  options.gameOverTimer  - Seconds elapsed since game over
+ * @param {number}  options.restartCooldown - Seconds before restart is accepted
+ */
+export function drawGameOverScreen(ctx, config, options) {
+  const cx = config.CANVAS_WIDTH / 2;
+
+  // Semi-transparent overlay
+  ctx.fillStyle = 'rgba(0, 0, 10, 0.88)';
+  ctx.fillRect(0, 0, config.CANVAS_WIDTH, config.CANVAS_HEIGHT);
+
+  // Title
+  drawText(ctx, 'GAME OVER', cx, 60,
+    { font: 'bold 48px sans-serif', color: '#FF4444' });
+
+  // Score breakdown
+  const meters = Math.floor(options.distance / config.PX_PER_METER);
+  drawText(ctx, 'Distance: ' + meters + 'm', cx, 115,
+    { font: '24px sans-serif', color: '#FFFFFF' });
+  drawText(ctx, 'Gene Score: ' + options.geneScore, cx, 145,
+    { font: '24px sans-serif', color: '#FFFFFF' });
+  drawText(ctx, 'Total: ' + options.totalScore, cx, 180,
+    { font: 'bold 28px sans-serif', color: '#FFD700' });
+
+  // High score comparison
+  if (options.isNewRecord) {
+    drawText(ctx, 'NEW HIGH SCORE!', cx, 212,
+      { font: 'bold 20px sans-serif', color: '#00FF88' });
+  } else if (options.highScore > 0) {
+    drawText(ctx, 'Best: ' + options.highScore, cx, 212,
+      { font: '18px sans-serif', color: '#AAAAAA' });
+  }
+
+  // Gene cards (up to 5 most recent, deduplicated by name)
+  const displayGenes = options.collectedGenes.slice(-5);
+  const uniqueGenes = [];
+  const seen = new Set();
+  for (const g of displayGenes) {
+    if (!seen.has(g.name)) {
+      seen.add(g.name);
+      uniqueGenes.push(g);
+    }
+  }
+
+  if (uniqueGenes.length > 0) {
+    drawText(ctx, 'Genes Collected:', cx, 245,
+      { font: 'bold 18px sans-serif', color: '#FFFFFF' });
+
+    const cardW = 500;
+    const cardH = 80;
+    const cardX = (config.CANVAS_WIDTH - cardW) / 2;
+    let cardY = 265;
+
+    for (const gene of uniqueGenes) {
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.fillRect(cardX, cardY, cardW, cardH);
+
+      ctx.fillStyle = gene.color;
+      ctx.fillRect(cardX, cardY, 6, cardH);
+
+      drawText(ctx, gene.name + '  (+' + gene.points + 'pts)',
+        cardX + 20, cardY + 16,
+        { font: 'bold 15px sans-serif', color: gene.color, align: 'left', baseline: 'top' });
+
+      drawText(ctx, gene.diseaseName + ' - ' + gene.inheritance,
+        cardX + 20, cardY + 34,
+        { font: '12px sans-serif', color: '#CCCCCC', align: 'left', baseline: 'top' });
+
+      drawText(ctx, gene.description.length > 90 ? gene.description.substring(0, 87) + '...' : gene.description,
+        cardX + 20, cardY + 50,
+        { font: '11px sans-serif', color: '#999999', align: 'left', baseline: 'top' });
+
+      drawText(ctx, 'OMIM: ' + gene.omimId,
+        cardX + 20, cardY + 65,
+        { font: '10px sans-serif', color: '#777777', align: 'left', baseline: 'top' });
+
+      cardY += cardH + 6;
+    }
+
+    if (options.collectedGenes.length > 5) {
+      drawText(ctx, '...and ' + (options.collectedGenes.length - 5) + ' more genes collected',
+        cx, cardY + 10,
+        { font: '14px sans-serif', color: '#888888' });
+    }
+  } else {
+    drawText(ctx, 'No genes collected this run', cx, 260,
+      { font: '18px sans-serif', color: '#666666' });
+  }
+
+  // Restart prompt (after cooldown)
+  if (options.gameOverTimer >= options.restartCooldown) {
+    const pulse = 0.4 + 0.6 * Math.abs(Math.sin(options.gameOverTimer * 2.5));
+    drawText(ctx, 'Press Space to restart', cx, config.CANVAS_HEIGHT - 40,
+      { font: '22px sans-serif', color: '#FFFFFF', alpha: pulse });
+  }
 }
 
 /**
