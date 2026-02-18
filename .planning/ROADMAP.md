@@ -74,10 +74,11 @@ Plans:
   2. Multiple obstacle types (kidney stone, blockage) appear with different sizes, defined in config
   3. Hitting an obstacle immediately triggers game over -- the game stops and shows a final score
   4. Collision detection uses AABB with a forgiving hitbox shrink so near-misses feel good
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md -- Config expansion (obstacle types with hitbox/spawn data) and obstacle spawning/rendering system
+- [ ] 04-02-PLAN.md -- AABB collision detection, near-miss flash, DYING state with death animation, game over overlay
 
 ### Phase 5: Collectibles + Scoring
 **Goal**: Players collect floating genes for points, see their score during gameplay, can restart after game over, and face increasing difficulty
@@ -119,6 +120,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Foundation | 2/2 | Complete | 2026-02-18 |
 | 2. Player + Physics | 0/2 | Planned | - |
 | 3. Game Loop + Scrolling | 0/2 | Planned | - |
-| 4. Obstacles + Collision | 0/TBD | Not started | - |
+| 4. Obstacles + Collision | 0/2 | Planned | - |
 | 5. Collectibles + Scoring | 0/TBD | Not started | - |
 | 6. Visual Polish | 0/TBD | Not started | - |
