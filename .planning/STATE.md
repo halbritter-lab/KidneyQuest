@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Core value:** Playable, fun, and simple enough for workshop participants to understand and modify
-**Current focus:** Phase 2 complete -- Phase 3 (Game Loop + Scrolling) is next
+**Current focus:** Phase 3 (Game Loop + Scrolling) -- Plan 1 of 2 complete
 
 ## Current Position
 
-Phase: 2 of 6 (Player Physics) -- Complete
-Plan: 2 of 2 in phase (all plans complete)
-Status: Complete
-Last activity: 2026-02-18 -- Completed Phase 2 (Player + Physics)
+Phase: 3 of 6 (Game Loop + Scrolling) -- In progress
+Plan: 1 of 2 in phase (03-01 complete)
+Status: In progress
+Last activity: 2026-02-18 -- Completed 03-01-PLAN.md (config expansion + scrolling ground)
 
-Progress: [████░░░░░░] ~33%
+Progress: [█████░░░░░] ~42%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: ~25 min
-- Total execution time: ~1.5 hours
+- Total plans completed: 5
+- Average duration: ~22 min
+- Total execution time: ~1.75 hours
 
 **By Phase:**
 
@@ -29,10 +29,11 @@ Progress: [████░░░░░░] ~33%
 |-------|-------|-------|----------|
 | 01-foundation | 2 | ~40 min | ~20 min |
 | 02-player-physics | 2 | ~55 min | ~28 min |
+| 03-game-loop-scrolling | 1 (of 2) | ~15 min | ~15 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01, 01-02, 02-01, 02-02
-- Trend: On track
+- Last 5 plans: 01-02, 02-01, 02-02, 03-01
+- Trend: Accelerating (03-01 fastest plan yet at ~15 min)
 
 *Updated after each plan completion*
 
@@ -66,6 +67,12 @@ Recent decisions affecting current work:
 - [02-02]: try-catch fallback to colored rectangle in drawPlayer -- graceful degradation
 - [02-02]: Chibi proportions (60% head, 25% body, 15% legs) -- cute and readable at game scale
 - [02-02]: doubleJump uses ctx.rotate for spin effect -- simple to implement, visually distinct
+- [03-01]: groundOffset as module-level let in main.js -- keeps scroll state local to game loop; no need to add to player/config objects
+- [03-01]: groundOffset % spacing phase calculation -- standard tile-scroll technique; prevents float precision loss at large offsets
+- [03-01]: Math.round(x) for marker x position -- pixel-crisp edges on all display densities
+- [03-01]: READY_SCROLL_SPEED = 60 (~30% of GAME_SPEED) -- subtle idle hint; calm at ready, full speed when running
+- [03-01]: Gene types include geneName and geneDescription -- educational scaffold for Phase 4+ tooltip UI without schema changes
+- [03-01]: OBSTACLE_TYPES gained spawnRate and movement fields -- Phase 4 spawner can be fully data-driven
 
 ### Pending Todos
 
@@ -78,5 +85,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed Phase 2 (Player + Physics) -- all plans verified
+Stopped at: Completed 03-01-PLAN.md (config expansion + scrolling ground)
 Resume file: None

@@ -62,7 +62,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md -- Config expansion (bold palette, rich entity arrays) and scrolling two-tone ground with dash markers
+- [x] 03-01-PLAN.md -- Config expansion (bold palette, rich entity arrays) and scrolling two-tone ground with dash markers
 - [ ] 03-02-PLAN.md -- Five-state machine, countdown, pause/resume, game over with cooldown, distance HUD
 
 ### Phase 4: Obstacles + Collision
@@ -120,7 +120,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|---------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-02-18 |
 | 2. Player + Physics | 2/2 | Complete | 2026-02-18 |
-| 3. Game Loop + Scrolling | 0/2 | Planned | - |
+| 3. Game Loop + Scrolling | 1/2 | In progress | - |
 | 4. Obstacles + Collision | 0/2 | Planned | - |
 | 5. Collectibles + Scoring | 0/2 | Planned | - |
 | 6. Visual Polish | 0/TBD | Not started | - |
