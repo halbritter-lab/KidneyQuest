@@ -68,11 +68,44 @@ export default {
 
   // Entity types: data-driven arrays for Phase 4+ spawning. Select by name or spawnRate, never by index.
 
-  // Obstacle types (for Phase 4+)
+  // Obstacle types (Phase 4) -- three visually distinct types with progressive unlocking
   OBSTACLE_TYPES: [
-    { name: 'kidney-stone', width: 30, height: 40, color: '#C4A35A', spawnRate: 1.0, movement: 'static' },
-    { name: 'blockage',     width: 50, height: 30, color: '#8B4513', spawnRate: 0.7, movement: 'static' },
-    { name: 'cyst',         width: 35, height: 35, color: '#9B59B6', spawnRate: 0.5, movement: 'float'  },
+    {
+      name: 'kidney-stone',
+      displayName: 'Kidney Stone',
+      width: 32,
+      height: 42,
+      color: '#8B6914',           // earthy brown
+      hitboxShrink: 0.15,         // 15% shrink on each side
+      placement: 'ground',        // sits on GROUND_Y
+      floatHeight: 0,
+      spawnWeight: 3,             // most common
+      unlockAfter: 0,             // available from start
+    },
+    {
+      name: 'toxin',
+      displayName: 'Toxin',
+      width: 28,
+      height: 36,
+      color: '#2E8B3A',           // mid-green
+      hitboxShrink: 0.15,
+      placement: 'ground',
+      floatHeight: 0,
+      spawnWeight: 2,
+      unlockAfter: 10,            // unlocks ~10s in
+    },
+    {
+      name: 'salt-crystal',
+      displayName: 'Salt Crystal',
+      width: 24,
+      height: 52,                 // tall
+      color: '#B0C8E0',           // white/light-blue
+      hitboxShrink: 0.20,         // more forgiving for tall obstacle
+      placement: 'floating',
+      floatHeight: 120,           // px above GROUND_Y -- at jump apex
+      spawnWeight: 1,
+      unlockAfter: 20,            // unlocks ~20s in
+    },
   ],
 
   // Gene types (for Phase 4+)
@@ -108,4 +141,30 @@ export default {
       color: '#9B59B6', points: 25, spawnRate: 0.4, movement: 'float',
     },
   ],
+
+  // -- Spawn timing (Phase 4) --
+  SPAWN_BASE_INTERVAL: 2.0,       // seconds between spawns
+  SPAWN_INTERVAL_VARIATION: 0.6,  // +/- random variation in seconds
+  FLOAT_UNLOCK_ELAPSED: 15,       // seconds before floating obstacles can appear
+
+  // -- Cluster spawning (Phase 4) --
+  CLUSTER_PROBABILITY: 0.25,      // 25% chance a spawn triggers a cluster
+  CLUSTER_SIZE_MAX: 3,            // max obstacles in a cluster
+  CLUSTER_GAP: 180,               // px gap between cluster members
+
+  // -- Hitbox (Phase 4) --
+  PLAYER_HITBOX_SHRINK: 0.15,     // player collision box shrink (same 15%)
+
+  // -- Death animation (Phase 4) --
+  DEATH_ANIMATION_DURATION: 0.5,  // seconds of flash + shake before game over
+  DEATH_FLASH_INTERVAL: 0.08,     // seconds per flash on/off toggle
+  DEATH_SHAKE_DURATION: 0.4,      // seconds of screen shake within death window
+  SHAKE_AMPLITUDE: 8,             // px max shake offset
+
+  // -- Near-miss (Phase 4) --
+  NEAR_MISS_FLASH_COLOR: '#FFFF44',  // yellow flash
+  NEAR_MISS_FLASH_DURATION: 0.15,    // seconds of near-miss flash
+
+  // -- Game over overlay (Phase 4) --
+  GAME_OVER_OVERLAY_ALPHA: 0.72,     // overlay darkness
 };
