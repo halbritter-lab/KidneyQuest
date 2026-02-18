@@ -90,10 +90,11 @@ Plans:
   3. Multiple gene types (PKD1, COL4A5, NPHS1) appear with different point values, defined in config
   4. Pressing Space or tapping on the game over screen restarts the game from scratch
   5. Game speed increases gradually over time, making the game progressively harder
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: TBD
+- [ ] 05-01-PLAN.md -- Config expansion (gene educational data, spawn/difficulty params) and gene spawning/collection/difficulty ramp
+- [ ] 05-02-PLAN.md -- Live HUD, collection feedback (popups + flash), educational game over screen, localStorage high score, restart
 
 ### Phase 6: Visual Polish
 **Goal**: The game replaces colored rectangles with real zebra sprites, kidney-themed art, parallax backgrounds, and CeRKiD branding
@@ -121,5 +122,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Player + Physics | 0/2 | Planned | - |
 | 3. Game Loop + Scrolling | 0/2 | Planned | - |
 | 4. Obstacles + Collision | 0/2 | Planned | - |
-| 5. Collectibles + Scoring | 0/TBD | Not started | - |
+| 5. Collectibles + Scoring | 0/2 | Planned | - |
 | 6. Visual Polish | 0/TBD | Not started | - |
