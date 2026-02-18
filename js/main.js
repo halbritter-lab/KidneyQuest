@@ -4,7 +4,7 @@
 import CONFIG from './config.js';
 import {
   setupCanvas, resizeCanvas, clearCanvas, drawText,
-  drawGround, drawPlayer, drawObstacles,
+  drawGround, drawPlayer, drawObstacles, drawGenes,
   drawCountdown, drawPauseOverlay, drawGameOver, drawHUD,
   drawWithShake,
 } from './renderer.js';
@@ -70,6 +70,17 @@ let deathTimer = 0;
 let killerObstacleName = null;
 let nearMissTimer = 0;
 
+// Gene collectible state (Phase 5)
+let genes = [];
+let geneSpawnTimer = 0;
+
+// Score state (Phase 5)
+let geneScore = 0;
+let collectedGenes = [];   // array of typeData objects for game over education screen
+
+// Difficulty ramp (Phase 5)
+let currentSpeed = CONFIG.GAME_SPEED;
+
 // ---------------------------------------------------------------------------
 // State transition helpers
 // ---------------------------------------------------------------------------
@@ -108,6 +119,11 @@ function resetGame() {
   deathTimer = 0;
   killerObstacleName = null;
   nearMissTimer = 0;
+  genes = [];
+  geneSpawnTimer = 0;
+  geneScore = 0;
+  collectedGenes = [];
+  currentSpeed = CONFIG.GAME_SPEED;
   gameState = 'READY';
 }
 
@@ -305,11 +321,127 @@ function updateSpawning(deltaTime) {
  * @param {number} deltaTime - Seconds elapsed since last frame
  */
 function updateObstacles(deltaTime) {
-  const speed = CONFIG.GAME_SPEED;
   for (const obs of obstacles) {
-    obs.x -= speed * deltaTime;
+    obs.x -= currentSpeed * deltaTime;
   }
   obstacles = obstacles.filter(obs => obs.x + obs.width > 0);
+}
+
+// ---------------------------------------------------------------------------
+// Gene collectible helpers (Phase 5)
+// ---------------------------------------------------------------------------
+
+/**
+ * Creates a gene collectible state object for the given gene type definition.
+ * Spawn Y is randomised within the vertical zone between the player zone and ground.
+ *
+ * @param {Object} type - Gene type definition from CONFIG.GENE_TYPES
+ * @returns {Object} Gene state object
+ */
+function createGene(type) {
+  const spawnY = 220 + Math.random() * 130;
+  return {
+    type: type.name,
+    typeData: type,
+    x: CONFIG.CANVAS_WIDTH + 20,
+    y: spawnY,
+    baseY: spawnY,
+    width: type.width,
+    height: type.height,
+    color: type.color,
+    points: type.points,
+    floatPhase: Math.random() * Math.PI * 2,
+    dead: false,
+  };
+}
+
+/**
+ * Moves all active genes left at currentSpeed and applies per-gene floating
+ * sine animation. Uses absolute baseY + sin offset to avoid drift.
+ * Marks genes as dead when they scroll off-screen.
+ *
+ * @param {number} deltaTime - Seconds elapsed since last frame
+ */
+function updateGenes(deltaTime) {
+  const AMP = CONFIG.COLLECTIBLE_FLOAT_AMPLITUDE;
+  const FREQ = CONFIG.COLLECTIBLE_FLOAT_FREQ;
+
+  for (const gene of genes) {
+    gene.x -= currentSpeed * deltaTime;
+    gene.floatPhase += FREQ * 2 * Math.PI * deltaTime;
+    gene.y = gene.baseY + Math.sin(gene.floatPhase) * AMP;
+    if (gene.x + gene.width < 0) gene.dead = true;
+  }
+  genes = genes.filter(g => !g.dead);
+}
+
+/**
+ * Delta-time accumulator for gene spawning.
+ * Spawn interval shortens gradually as currentSpeed increases (more genes at higher speeds).
+ *
+ * @param {number} deltaTime - Seconds elapsed since last frame
+ */
+function updateGeneSpawning(deltaTime) {
+  geneSpawnTimer += deltaTime;
+
+  const speedRatio = currentSpeed / CONFIG.GAME_SPEED;
+  const baseInterval = CONFIG.COLLECTIBLE_SPAWN_BASE_INTERVAL / Math.max(1, speedRatio * 0.5 + 0.5);
+  const variation = (Math.random() - 0.5) * 2 * CONFIG.COLLECTIBLE_SPAWN_VARIATION;
+  const interval = Math.max(1.5, baseInterval + variation);
+
+  if (geneSpawnTimer >= interval) {
+    geneSpawnTimer -= interval;
+    const type = CONFIG.GENE_TYPES[Math.floor(Math.random() * CONFIG.GENE_TYPES.length)];
+    genes.push(createGene(type));
+  }
+}
+
+/**
+ * AABB collision check between the player and all active genes (no hitbox shrink).
+ * Removes collected genes immediately and calls onGeneCollected for each hit.
+ *
+ * @param {Object} player - Player state object with x, y
+ */
+function checkGeneCollisions(player) {
+  const px = player.x;
+  const py = player.y;
+  const pw = CONFIG.PLAYER_WIDTH;
+  const ph = CONFIG.PLAYER_HEIGHT;
+
+  for (const gene of genes) {
+    if (gene.dead) continue;
+    if (px < gene.x + gene.width &&
+        px + pw > gene.x &&
+        py < gene.y + gene.height &&
+        py + ph > gene.y) {
+      gene.dead = true;
+      onGeneCollected(gene);
+    }
+  }
+  genes = genes.filter(g => !g.dead);
+}
+
+/**
+ * Awards points and records the collected gene type for the end-of-game education screen.
+ * Plan 02 will add collection popup and HUD flash effects.
+ *
+ * @param {Object} gene - Collected gene state object
+ */
+function onGeneCollected(gene) {
+  geneScore += gene.points;
+  collectedGenes.push(gene.typeData);
+  // Plan 02 will add: spawnCollectionPopup(gene.x, gene.y, '+' + gene.points);
+  // Plan 02 will add: triggerGeneNameFlash(gene.typeData.name);
+}
+
+/**
+ * Increments currentSpeed up to MAX_SPEED each RUNNING frame.
+ * All movement uses currentSpeed so the entire world accelerates uniformly.
+ *
+ * @param {number} deltaTime - Seconds elapsed since last frame
+ */
+function updateDifficultyRamp(deltaTime) {
+  currentSpeed = Math.min(currentSpeed + CONFIG.SPEED_INCREMENT * deltaTime, CONFIG.MAX_SPEED);
 }
 
 // ---------------------------------------------------------------------------
@@ -435,7 +567,7 @@ function updateGameOver(deltaTime) {
  * @param {number} deltaTime - Seconds elapsed since last frame
  */
 function updateDistance(deltaTime) {
-  distance += CONFIG.GAME_SPEED * deltaTime;
+  distance += currentSpeed * deltaTime;
 }
 
 // ---------------------------------------------------------------------------
@@ -457,7 +589,7 @@ function gameLoop(timestamp) {
   if (gameState === 'READY' || gameState === 'COUNTDOWN') {
     groundOffset += CONFIG.READY_SCROLL_SPEED * deltaTime;
   } else if (gameState === 'RUNNING') {
-    groundOffset += CONFIG.GAME_SPEED * deltaTime;
+    groundOffset += currentSpeed * deltaTime;
   }
 
   // Scrolling ground is always visible regardless of state
@@ -479,12 +611,18 @@ function gameLoop(timestamp) {
 
   } else if (gameState === 'RUNNING') {
     updateDistance(deltaTime);
+    updateDifficultyRamp(deltaTime);
     updateSpawning(deltaTime);
     updateObstacles(deltaTime);
+    updateGeneSpawning(deltaTime);
+    updateGenes(deltaTime);
     updatePlayer(player, deltaTime);
 
     // Advance near-miss flash timer
     if (nearMissTimer > 0) nearMissTimer -= deltaTime;
+
+    // Gene collection check (before obstacle collision check)
+    checkGeneCollisions(player);
 
     // Collision and near-miss detection
     const collisionResult = checkCollisions(player);
@@ -497,6 +635,7 @@ function gameLoop(timestamp) {
       }
 
       drawObstacles(ctx, obstacles);
+      drawGenes(ctx, genes);
       drawPlayer(ctx, player, CONFIG);
 
       // Near-miss yellow flash overlay on the player
@@ -528,6 +667,7 @@ function gameLoop(timestamp) {
     drawWithShake(ctx, CONFIG, deathTimer, () => {
       drawGround(ctx, CONFIG, groundOffset);
       drawObstacles(ctx, obstacles);
+      drawGenes(ctx, genes);
 
       // Player flash: visible every other DEATH_FLASH_INTERVAL
       const flashVisible = Math.floor(deathTimer / CONFIG.DEATH_FLASH_INTERVAL) % 2 === 0;
@@ -540,6 +680,7 @@ function gameLoop(timestamp) {
 
   } else if (gameState === 'PAUSED') {
     drawObstacles(ctx, obstacles);   // frozen in place (no update)
+    drawGenes(ctx, genes);           // frozen in place (no update)
     drawPlayer(ctx, player, CONFIG); // frozen position (no updatePlayer call)
     drawHUD(ctx, CONFIG, distance);
     drawPauseOverlay(ctx, CONFIG);
@@ -547,6 +688,7 @@ function gameLoop(timestamp) {
   } else if (gameState === 'GAME_OVER') {
     updateGameOver(deltaTime);
     drawObstacles(ctx, obstacles);   // frozen in place (no update)
+    drawGenes(ctx, genes);           // frozen in place (no update)
     // Flash player during freeze delay, then show steadily
     if (gameOverTimer < CONFIG.GAME_OVER_FREEZE_DELAY) {
       const flashVisible = Math.floor(gameOverTimer / CONFIG.FLASH_INTERVAL) % 2 === 0;
@@ -576,6 +718,11 @@ window.__game = {
   get deathTimer()          { return deathTimer; },
   get killerObstacleName()  { return killerObstacleName; },
   get nearMissTimer()       { return nearMissTimer; },
+  get genes()               { return genes; },
+  get geneSpawnTimer()      { return geneSpawnTimer; },
+  get geneScore()           { return geneScore; },
+  get collectedGenes()      { return collectedGenes; },
+  get currentSpeed()        { return currentSpeed; },
 };
 
 // Kick off the loop -- runs continuously even on the start screen for the

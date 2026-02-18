@@ -302,6 +302,37 @@ export function drawObstacles(ctx, obstacles) {
 }
 
 // ---------------------------------------------------------------------------
+// Gene collectible drawing (Phase 5)
+// ---------------------------------------------------------------------------
+
+/**
+ * Draws all active gene collectibles as colored rectangles with name labels.
+ * Uses Math.round on positions for crisp pixel-aligned edges.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Array} genes - Array of gene state objects ({x, y, width, height, color, type})
+ */
+export function drawGenes(ctx, genes) {
+  for (const gene of genes) {
+    // Colored rectangle
+    ctx.fillStyle = gene.color;
+    ctx.fillRect(Math.round(gene.x), Math.round(gene.y), gene.width, gene.height);
+
+    // White border for visibility
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(Math.round(gene.x) + 0.5, Math.round(gene.y) + 0.5, gene.width - 1, gene.height - 1);
+
+    // Gene name label above the rectangle
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(gene.type, Math.round(gene.x) + gene.width / 2, Math.round(gene.y) - 2);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Zebra character drawing -- procedural Canvas 2D, no external images
 // ---------------------------------------------------------------------------
 
