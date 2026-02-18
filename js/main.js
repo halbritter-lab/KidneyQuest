@@ -294,6 +294,17 @@ function gameLoop(timestamp) {
   requestAnimationFrame(gameLoop);
 }
 
+// Expose game state for testing and workshop debugging
+window.__game = {
+  get state()          { return gameState; },
+  get distance()       { return distance; },
+  get countdownValue() { return countdownValue; },
+  get countdownTimer() { return countdownTimer; },
+  get gameOverTimer()  { return gameOverTimer; },
+  get groundOffset()   { return groundOffset; },
+  get player()         { return player; },
+};
+
 // Kick off the loop -- runs continuously even on the start screen for the
 // pulsing animation
 requestAnimationFrame(gameLoop);
