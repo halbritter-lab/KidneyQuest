@@ -13,7 +13,7 @@ KidneyQuest v1.0 builds a playable side-scrolling runner in six phases, followin
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - HTML canvas, ES Modules, config, input, and responsive scaling
-- [ ] **Phase 2: Player + Physics** - Rectangle player with gravity-based jump mechanics
+- [ ] **Phase 2: Player + Physics** - Chibi zebra player with gravity-based jump mechanics
 - [ ] **Phase 3: Game Loop + Scrolling** - State machine, render loop, and scrolling ground
 - [ ] **Phase 4: Obstacles + Collision** - Obstacle spawning, AABB collision, and game over state
 - [ ] **Phase 5: Collectibles + Scoring** - Gene pickups, score display, difficulty ramp, and restart
@@ -38,17 +38,18 @@ Plans:
 - [x] 01-02-PLAN.md -- Interactive modules: input, renderer, main.js with animated start screen
 
 ### Phase 2: Player + Physics
-**Goal**: A rectangle player character jumps with a satisfying gravity arc that works identically on 60Hz and 120Hz displays
+**Goal**: A chibi zebra player character jumps with a satisfying gravity arc (double jump, variable height, coyote time) that works identically on 60Hz and 120Hz displays
 **Depends on**: Phase 1
 **Requirements**: MECH-05, MECH-06
 **Success Criteria** (what must be TRUE):
-  1. Pressing Space or ArrowUp (or tapping on mobile) makes the player rectangle jump with a smooth gravity arc
-  2. Player lands back on the ground and cannot jump again until grounded
+  1. Pressing Space or ArrowUp (or tapping on mobile) makes the player character jump with a smooth gravity arc
+  2. Player lands back on the ground and cannot jump again until grounded (except double-jump while airborne)
   3. Jump arc looks and feels identical on 60Hz and 120Hz displays (delta-time physics)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: TBD
+- [ ] 02-01-PLAN.md -- Player physics core: player.js entity, jump mechanics, input upgrade, colored rectangle
+- [ ] 02-02-PLAN.md -- Zebra sprite animation: sprite sheet, animation state machine, visual polish
 
 ### Phase 3: Game Loop + Scrolling
 **Goal**: The game runs a continuous loop with a working five-state machine (READY, COUNTDOWN, RUNNING, PAUSED, GAME_OVER), the ground scrolls to create the illusion of running, and entity types are defined as rich data-driven arrays
@@ -116,7 +117,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-02-18 |
-| 2. Player + Physics | 0/TBD | Not started | - |
+| 2. Player + Physics | 0/2 | Planned | - |
 | 3. Game Loop + Scrolling | 0/2 | Planned | - |
 | 4. Obstacles + Collision | 0/TBD | Not started | - |
 | 5. Collectibles + Scoring | 0/TBD | Not started | - |
