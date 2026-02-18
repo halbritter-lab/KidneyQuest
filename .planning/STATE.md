@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Core value:** Playable, fun, and simple enough for workshop participants to understand and modify
-**Current focus:** Phase 3 (Game Loop + Scrolling) -- Plan 1 of 2 complete
+**Current focus:** Phase 4 (Obstacles + Collision) -- Plan 1 of 2 complete
 
 ## Current Position
 
-Phase: 3 of 6 (Game Loop + Scrolling) -- In progress
-Plan: 1 of 2 in phase (03-01 complete)
+Phase: 4 of 6 (Obstacles + Collision) -- In progress
+Plan: 1 of 2 in phase (04-01 complete)
 Status: In progress
-Last activity: 2026-02-18 -- Completed 03-01-PLAN.md (config expansion + scrolling ground)
+Last activity: 2026-02-18 -- Completed 04-01-PLAN.md (obstacle types config + spawn system)
 
-Progress: [█████░░░░░] ~42%
+Progress: [██████░░░░] ~58%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: ~22 min
-- Total execution time: ~1.75 hours
+- Total plans completed: 6
+- Average duration: ~21 min
+- Total execution time: ~2.1 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [█████░░░░░] ~42%
 | 01-foundation | 2 | ~40 min | ~20 min |
 | 02-player-physics | 2 | ~55 min | ~28 min |
 | 03-game-loop-scrolling | 1 (of 2) | ~15 min | ~15 min |
+| 04-obstacles-collision | 1 (of 2) | ~18 min | ~18 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02, 02-01, 02-02, 03-01
-- Trend: Accelerating (03-01 fastest plan yet at ~15 min)
+- Last 5 plans: 02-01, 02-02, 03-01, 04-01
+- Trend: Stable (04-01 at ~18 min, consistent with recent pace)
 
 *Updated after each plan completion*
 
@@ -73,6 +74,11 @@ Recent decisions affecting current work:
 - [03-01]: READY_SCROLL_SPEED = 60 (~30% of GAME_SPEED) -- subtle idle hint; calm at ready, full speed when running
 - [03-01]: Gene types include geneName and geneDescription -- educational scaffold for Phase 4+ tooltip UI without schema changes
 - [03-01]: OBSTACLE_TYPES gained spawnRate and movement fields -- Phase 4 spawner can be fully data-driven
+- [04-01]: OBSTACLE_TYPES replaced from Phase 3 placeholder to full Phase 4 spec (hitboxShrink, placement, floatHeight, spawnWeight, unlockAfter, displayName)
+- [04-01]: Spawn X = CANVAS_WIDTH + type.width + 10 -- ensures full off-screen clearance before collision checks in Plan 02
+- [04-01]: spawnTimer -= spawnInterval (not = 0) -- preserves remainder for accurate timing at all frame rates
+- [04-01]: Obstacles drawn after ground, before player -- standard runner convention (player appears in front)
+- [04-01]: drawObstacles called in PAUSED and GAME_OVER states -- obstacles freeze visually in non-running states
 
 ### Pending Todos
 
@@ -85,5 +91,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 03-01-PLAN.md (config expansion + scrolling ground)
+Stopped at: Completed 04-01-PLAN.md (obstacle types config + spawn system)
 Resume file: None
