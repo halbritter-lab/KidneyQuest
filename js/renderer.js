@@ -115,6 +115,120 @@ export function drawGround(ctx, config, groundOffset) {
 }
 
 // ---------------------------------------------------------------------------
+// HUD and overlay renderers
+// ---------------------------------------------------------------------------
+
+/**
+ * Draws the distance HUD counter in the top-right corner.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Object} config - Game CONFIG object
+ * @param {number} distance - Cumulative scroll distance in pixels
+ */
+export function drawHUD(ctx, config, distance) {
+  const meters = Math.floor(distance / config.PX_PER_METER);
+  drawText(ctx, `${meters}m`, config.CANVAS_WIDTH - 30, 40, {
+    font: 'bold 28px sans-serif',
+    color: config.HUD_COLOR,
+    align: 'right',
+    baseline: 'top',
+  });
+}
+
+/**
+ * Draws a pulsing countdown number (3-2-1) or "Go!" when countdownValue === 0.
+ * Size pulses from large to smaller within each COUNTDOWN_STEP interval.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Object} config - Game CONFIG object
+ * @param {number} countdownValue - Current digit (3, 2, 1, or 0 for "Go!")
+ * @param {number} countdownTimer - Time elapsed within the current step (seconds)
+ */
+export function drawCountdown(ctx, config, countdownValue, countdownTimer) {
+  const label = countdownValue > 0 ? String(countdownValue) : 'Go!';
+  const color = countdownValue > 0 ? config.COUNTDOWN_COLOR : config.COUNTDOWN_GO_COLOR;
+
+  // Pulse: start large at the beginning of each step, shrink toward the end
+  const pulse = 1.0 - (countdownTimer / config.COUNTDOWN_STEP) * 0.3;
+  const fontSize = Math.round(120 * pulse);
+
+  const cx = config.CANVAS_WIDTH / 2;
+  const cy = config.CANVAS_HEIGHT / 2;
+
+  drawText(ctx, label, cx, cy, {
+    font: `bold ${fontSize}px sans-serif`,
+    color,
+  });
+}
+
+/**
+ * Draws a semi-transparent pause overlay with "PAUSED" and resume hint text.
+ * Uses ctx.save/restore around the overlay fill to preserve alpha state.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Object} config - Game CONFIG object
+ */
+export function drawPauseOverlay(ctx, config) {
+  const cx = config.CANVAS_WIDTH / 2;
+  const cy = config.CANVAS_HEIGHT / 2;
+
+  // Dim the screen with a semi-transparent black overlay
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.fillRect(0, 0, config.CANVAS_WIDTH, config.CANVAS_HEIGHT);
+  ctx.restore();
+
+  // "PAUSED" centred, bold 64px, white
+  drawText(ctx, 'PAUSED', cx, cy - 40, {
+    font: 'bold 64px sans-serif',
+    color: '#FFFFFF',
+  });
+
+  // Resume hint -- smaller, slightly transparent
+  drawText(ctx, 'Press Escape to resume', cx, cy + 30, {
+    font: '24px sans-serif',
+    color: '#FFFFFF',
+    alpha: 0.7,
+  });
+}
+
+/**
+ * Draws the game over screen in two phases:
+ *   Phase 1 (gameOverTimer < GAME_OVER_FREEZE_DELAY): no text (flash handled by main.js)
+ *   Phase 2 (>= GAME_OVER_FREEZE_DELAY): "Game Over" text appears
+ *   Phase 3 (>= GAME_OVER_FREEZE_DELAY + GAME_OVER_COOLDOWN): pulsing restart prompt
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Object} config - Game CONFIG object
+ * @param {number} gameOverTimer - Seconds elapsed since game over was triggered
+ */
+export function drawGameOver(ctx, config, gameOverTimer) {
+  // Phase 1: silent flash -- no text rendered here
+  if (gameOverTimer < config.GAME_OVER_FREEZE_DELAY) {
+    return;
+  }
+
+  const cx = config.CANVAS_WIDTH / 2;
+  const cy = config.CANVAS_HEIGHT / 2;
+
+  // Phase 2+: "Game Over" centred in red
+  drawText(ctx, 'Game Over', cx, cy - 40, {
+    font: 'bold 72px sans-serif',
+    color: config.GAME_OVER_COLOR,
+  });
+
+  // Phase 3: pulsing "Press Space to restart" after cooldown expires
+  if (gameOverTimer >= config.GAME_OVER_FREEZE_DELAY + config.GAME_OVER_COOLDOWN) {
+    const alpha = 0.3 + 0.7 * Math.abs(Math.sin(gameOverTimer * 3));
+    drawText(ctx, 'Press Space to restart', cx, cy + 40, {
+      font: '28px sans-serif',
+      color: '#FFFFFF',
+      alpha,
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Zebra character drawing -- procedural Canvas 2D, no external images
 // ---------------------------------------------------------------------------
 
