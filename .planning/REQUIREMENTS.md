@@ -9,9 +9,9 @@ Requirements for v1.0 Playable Game milestone. Each maps to roadmap phases.
 
 ### Core Mechanics
 
-- [ ] **MECH-01**: Game displays centered canvas with dark background on page load
-- [ ] **MECH-02**: Game shows "Press Space to Start" on READY screen
-- [ ] **MECH-03**: Player can start game by pressing Space or tapping screen
+- [x] **MECH-01**: Game displays centered canvas with dark background on page load
+- [x] **MECH-02**: Game shows "Press Space to Start" on READY screen
+- [x] **MECH-03**: Player can start game by pressing Space or tapping screen
 - [ ] **MECH-04**: Player character runs automatically on scrolling ground
 - [ ] **MECH-05**: Player can jump with Space/ArrowUp (keyboard) or tap (touch)
 - [ ] **MECH-06**: Jump uses gravity arc with delta-time physics (works on 60Hz and 120Hz)
@@ -39,9 +39,9 @@ Requirements for v1.0 Playable Game milestone. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFR-01**: Project uses ES Modules architecture (single `<script type="module">`)
-- [ ] **INFR-02**: All tunable constants centralized in config.js
-- [ ] **INFR-03**: Canvas scales responsively to fit viewport (fixed resolution, CSS-scaled)
+- [x] **INFR-01**: Project uses ES Modules architecture (single `<script type="module">`)
+- [x] **INFR-02**: All tunable constants centralized in config.js
+- [x] **INFR-03**: Canvas scales responsively to fit viewport (fixed resolution, CSS-scaled)
 - [ ] **INFR-04**: Collision detection uses AABB with configurable hitbox shrink for forgiving feel
 - [ ] **INFR-05**: Entity types (obstacles, genes) are data-driven arrays in config
 
@@ -80,9 +80,9 @@ Deferred to future milestone. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MECH-01 | Phase 1 | Pending |
-| MECH-02 | Phase 1 | Pending |
-| MECH-03 | Phase 1 | Pending |
+| MECH-01 | Phase 1 | Complete |
+| MECH-02 | Phase 1 | Complete |
+| MECH-03 | Phase 1 | Complete |
 | MECH-04 | Phase 3 | Pending |
 | MECH-05 | Phase 2 | Pending |
 | MECH-06 | Phase 2 | Pending |
@@ -104,9 +104,9 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | VIZP-06 | Phase 6 | Pending |
 | VIZP-07 | Phase 6 | Pending |
 | VIZP-08 | Phase 6 | Pending |
-| INFR-01 | Phase 1 | Pending |
-| INFR-02 | Phase 1 | Pending |
-| INFR-03 | Phase 1 | Pending |
+| INFR-01 | Phase 1 | Complete |
+| INFR-02 | Phase 1 | Complete |
+| INFR-03 | Phase 1 | Complete |
 | INFR-04 | Phase 4 | Pending |
 | INFR-05 | Phase 3 | Pending |
 
@@ -117,4 +117,4 @@ Deferred to future milestone. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-17*
-*Last updated: 2026-02-17 after roadmap creation*
+*Last updated: 2026-02-18 after Phase 1 completion*

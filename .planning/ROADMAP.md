@@ -12,7 +12,7 @@ KidneyQuest v1.0 builds a playable side-scrolling runner in six phases, followin
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - HTML canvas, ES Modules, config, input, and responsive scaling
+- [x] **Phase 1: Foundation** - HTML canvas, ES Modules, config, input, and responsive scaling
 - [ ] **Phase 2: Player + Physics** - Rectangle player with gravity-based jump mechanics
 - [ ] **Phase 3: Game Loop + Scrolling** - State machine, render loop, and scrolling ground
 - [ ] **Phase 4: Obstacles + Collision** - Obstacle spawning, AABB collision, and game over state
@@ -34,8 +34,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md -- Project skeleton: config.js, index.html, style.css
-- [ ] 01-02-PLAN.md -- Interactive modules: input, renderer, main.js with animated start screen
+- [x] 01-01-PLAN.md -- Project skeleton: config.js, index.html, style.css
+- [x] 01-02-PLAN.md -- Interactive modules: input, renderer, main.js with animated start screen
 
 ### Phase 2: Player + Physics
 **Goal**: A rectangle player character jumps with a satisfying gravity arc that works identically on 60Hz and 120Hz displays
@@ -114,7 +114,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 1. Foundation | 0/2 | Planned | - |
+| 1. Foundation | 2/2 | Complete | 2026-02-18 |
 | 2. Player + Physics | 0/TBD | Not started | - |
 | 3. Game Loop + Scrolling | 0/TBD | Not started | - |
 | 4. Obstacles + Collision | 0/TBD | Not started | - |
