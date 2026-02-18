@@ -97,19 +97,23 @@ Plans:
 - [ ] 05-02-PLAN.md -- Live HUD, collection feedback (popups + flash), educational game over screen, localStorage high score, restart
 
 ### Phase 6: Visual Polish
-**Goal**: The game replaces colored rectangles with real zebra sprites, kidney-themed art, parallax backgrounds, and CeRKiD branding
+**Goal**: The game replaces colored rectangles with real zebra sprites, kidney-themed art, parallax backgrounds, and KidneyQuest branding (CeRKiD branding overridden per CONTEXT.md)
 **Depends on**: Phase 5
 **Requirements**: VIZP-01, VIZP-02, VIZP-03, VIZP-04, VIZP-05, VIZP-06, VIZP-07, VIZP-08
 **Success Criteria** (what must be TRUE):
   1. The player character is a zebra with a visible run cycle animation and distinct jump/fall poses
   2. Obstacles and gene collectibles are rendered with kidney-themed sprites (genes have a glow effect)
   3. Background has multiple parallax layers scrolling at different speeds, creating visual depth
-  4. Start screen displays CeRKiD branding/logo
+  4. Start screen displays KidneyQuest title + "Collect the Genes!" tagline (CeRKiD branding override)
   5. Game over screen shows a score breakdown (distance + genes collected) and best score
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 06-01: TBD
+- [ ] 06-01-PLAN.md -- Infrastructure: sprite loader, particle pool, player death state, pixel art CSS
+- [ ] 06-02-PLAN.md -- Parallax background rewrite: 5-layer kidney-interior factory function
+- [ ] 06-03-PLAN.md -- Sprite rendering: player/obstacle/gene sprite paths with procedural fallback
+- [ ] 06-04-PLAN.md -- Integration: wire background, shake, particles into main.js; polished start/game-over screens
+- [ ] 06-05-PLAN.md -- Visual verification checkpoint: play-through all visual features
 
 ## Progress
 
@@ -123,4 +127,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Game Loop + Scrolling | 2/2 | Complete | 2026-02-18 |
 | 4. Obstacles + Collision | 0/2 | Planned | - |
 | 5. Collectibles + Scoring | 0/2 | Planned | - |
-| 6. Visual Polish | 0/TBD | Not started | - |
+| 6. Visual Polish | 0/5 | Planned | - |
