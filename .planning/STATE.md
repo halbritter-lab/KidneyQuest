@@ -5,33 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Core value:** Playable, fun, and simple enough for workshop participants to understand and modify
-**Current focus:** Phase 2 in progress -- Plan 01 (Player Physics Core) complete
+**Current focus:** Phase 2 complete -- Phase 3 (Game Loop + Scrolling) is next
 
 ## Current Position
 
-Phase: 2 of 6 (Player Physics) -- In progress
-Plan: 1 of 2 in phase (Plan 01 complete, Plan 02 remaining)
-Status: In progress
-Last activity: 2026-02-18 -- Completed 02-01-PLAN.md (Player Physics Core)
+Phase: 2 of 6 (Player Physics) -- Complete
+Plan: 2 of 2 in phase (all plans complete)
+Status: Complete
+Last activity: 2026-02-18 -- Completed Phase 2 (Player + Physics)
 
-Progress: [███░░░░░░░] ~25%
+Progress: [████░░░░░░] ~33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: ~22 min
-- Total execution time: ~0.9 hours
+- Total plans completed: 4
+- Average duration: ~25 min
+- Total execution time: ~1.5 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 2 | ~40 min | ~20 min |
-| 02-player-physics | 1 | ~25 min | ~25 min |
+| 02-player-physics | 2 | ~55 min | ~28 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01, 01-02, 02-01
+- Last 5 plans: 01-01, 01-02, 02-01, 02-02
 - Trend: On track
 
 *Updated after each plan completion*
@@ -61,6 +61,11 @@ Recent decisions affecting current work:
 - [02-01]: drawPlayer squash/stretch anchored at bottom-centre -- landing squash looks natural (compresses downward from feet)
 - [02-01]: Coyote time checks `coyoteTimer > 0 && jumpsRemaining === 2` atomically -- prevents coyote time consuming double jump
 - [02-01]: Object.assign(player, createPlayer(CONFIG)) for restart reset -- player is const; mutates in place without breaking references
+- [02-02]: ANIM_STATES internal to player.js (not exported) -- renderer receives animState + animFrame as params
+- [02-02]: Procedural Canvas 2D drawing (not sprite sheet) -- workshop-friendly, zero external assets
+- [02-02]: try-catch fallback to colored rectangle in drawPlayer -- graceful degradation
+- [02-02]: Chibi proportions (60% head, 25% body, 15% legs) -- cute and readable at game scale
+- [02-02]: doubleJump uses ctx.rotate for spin effect -- simple to implement, visually distinct
 
 ### Pending Todos
 
@@ -73,5 +78,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 02-01-PLAN.md (Player Physics Core) -- Phase 2 Plan 1 of 2 complete
+Stopped at: Completed Phase 2 (Player + Physics) -- all plans verified
 Resume file: None

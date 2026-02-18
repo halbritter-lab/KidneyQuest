@@ -13,8 +13,8 @@ Requirements for v1.0 Playable Game milestone. Each maps to roadmap phases.
 - [x] **MECH-02**: Game shows "Press Space to Start" on READY screen
 - [x] **MECH-03**: Player can start game by pressing Space or tapping screen
 - [ ] **MECH-04**: Player character runs automatically on scrolling ground
-- [ ] **MECH-05**: Player can jump with Space/ArrowUp (keyboard) or tap (touch)
-- [ ] **MECH-06**: Jump uses gravity arc with delta-time physics (works on 60Hz and 120Hz)
+- [x] **MECH-05**: Player can jump with Space/ArrowUp (keyboard) or tap (touch)
+- [x] **MECH-06**: Jump uses gravity arc with delta-time physics (works on 60Hz and 120Hz)
 - [ ] **MECH-07**: Obstacles spawn at intervals and scroll left toward player
 - [ ] **MECH-08**: Hitting an obstacle triggers GAME_OVER state
 - [ ] **MECH-09**: Gene collectibles spawn and scroll left with floating motion
@@ -84,8 +84,8 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | MECH-02 | Phase 1 | Complete |
 | MECH-03 | Phase 1 | Complete |
 | MECH-04 | Phase 3 | Pending |
-| MECH-05 | Phase 2 | Pending |
-| MECH-06 | Phase 2 | Pending |
+| MECH-05 | Phase 2 | Complete |
+| MECH-06 | Phase 2 | Complete |
 | MECH-07 | Phase 4 | Pending |
 | MECH-08 | Phase 4 | Pending |
 | MECH-09 | Phase 5 | Pending |
@@ -117,4 +117,4 @@ Deferred to future milestone. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-17*
-*Last updated: 2026-02-18 after Phase 1 completion*
+*Last updated: 2026-02-18 after Phase 2 completion*

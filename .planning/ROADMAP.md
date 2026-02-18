@@ -13,7 +13,7 @@ KidneyQuest v1.0 builds a playable side-scrolling runner in six phases, followin
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - HTML canvas, ES Modules, config, input, and responsive scaling
-- [ ] **Phase 2: Player + Physics** - Chibi zebra player with gravity-based jump mechanics
+- [x] **Phase 2: Player + Physics** - Chibi zebra player with gravity-based jump mechanics
 - [ ] **Phase 3: Game Loop + Scrolling** - State machine, render loop, and scrolling ground
 - [ ] **Phase 4: Obstacles + Collision** - Obstacle spawning, AABB collision, and game over state
 - [ ] **Phase 5: Collectibles + Scoring** - Gene pickups, score display, difficulty ramp, and restart
@@ -48,8 +48,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md -- Player physics core: player.js entity, jump mechanics, input upgrade, colored rectangle
-- [ ] 02-02-PLAN.md -- Zebra sprite animation: sprite sheet, animation state machine, visual polish
+- [x] 02-01-PLAN.md -- Player physics core: player.js entity, jump mechanics, input upgrade, colored rectangle
+- [x] 02-02-PLAN.md -- Zebra sprite animation: procedural Canvas 2D chibi zebra, animation state machine
 
 ### Phase 3: Game Loop + Scrolling
 **Goal**: The game runs a continuous loop with a working five-state machine (READY, COUNTDOWN, RUNNING, PAUSED, GAME_OVER), the ground scrolls to create the illusion of running, and entity types are defined as rich data-driven arrays
@@ -119,7 +119,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-02-18 |
-| 2. Player + Physics | 0/2 | Planned | - |
+| 2. Player + Physics | 2/2 | Complete | 2026-02-18 |
 | 3. Game Loop + Scrolling | 0/2 | Planned | - |
 | 4. Obstacles + Collision | 0/2 | Planned | - |
 | 5. Collectibles + Scoring | 0/2 | Planned | - |
