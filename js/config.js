@@ -16,7 +16,7 @@ export default {
 
   // Speeds
   GAME_SPEED: 200,               // px/s initial horizontal scroll
-  SPEED_INCREMENT: 5,            // px/s per second of acceleration
+  SPEED_INCREMENT: 2,            // px/s per second of acceleration (gentler ramp, ~150s to reach MAX_SPEED)
   MAX_SPEED: 500,                // px/s cap
 
   // Ground
@@ -108,37 +108,46 @@ export default {
     },
   ],
 
-  // Gene types (for Phase 4+)
+  // Gene types (Phase 5) -- three distinct collectible types with full educational fields
   GENE_TYPES: [
     {
-      name: 'PKD1', geneName: 'Polycystin-1',
-      geneDescription: 'Helps kidneys develop properly. Mutations cause cysts, leading to polycystic kidney disease.',
-      color: '#E74C3C', points: 10, spawnRate: 1.0, movement: 'float',
+      name: 'PKD1',
+      color: '#4CAF50',
+      points: 10,
+      width: 30,
+      height: 30,
+      diseaseName: 'Autosomal Dominant Polycystic Kidney Disease (ADPKD)',
+      description: 'Encodes Polycystin-1, a membrane receptor controlling kidney tubule development. Mutations cause fluid-filled cysts that progressively replace kidney tissue.',
+      inheritance: 'Autosomal dominant (50% transmission risk)',
+      omimId: '173900',
+      omimUrl: 'https://omim.org/entry/173900',
+      geneReviewsUrl: 'https://www.ncbi.nlm.nih.gov/books/NBK1246/',
     },
     {
-      name: 'PKD2', geneName: 'Polycystin-2',
-      geneDescription: 'Works with PKD1 to keep kidneys healthy. PKD2 mutations cause a milder polycystic kidney disease.',
-      color: '#E67E22', points: 10, spawnRate: 1.0, movement: 'float',
+      name: 'COL4A5',
+      color: '#2196F3',
+      points: 15,
+      width: 30,
+      height: 30,
+      diseaseName: 'Alport Syndrome (X-linked)',
+      description: 'Encodes Collagen IV alpha-5, a key component of the glomerular basement membrane. Mutations cause progressive kidney failure, hearing loss, and eye abnormalities.',
+      inheritance: 'X-linked (males severely affected; females variable)',
+      omimId: '301050',
+      omimUrl: 'https://omim.org/entry/301050',
+      geneReviewsUrl: 'https://www.ncbi.nlm.nih.gov/books/NBK1207/',
     },
     {
-      name: 'COL4A5', geneName: 'Collagen IV Alpha-5',
-      geneDescription: 'Builds the kidney filter membrane. Mutations cause Alport syndrome with kidney failure and hearing loss.',
-      color: '#3498DB', points: 15, spawnRate: 0.8, movement: 'float',
-    },
-    {
-      name: 'NPHS1', geneName: 'Nephrin',
-      geneDescription: 'Forms the kidney\'s finest filter barrier. Mutations cause congenital nephrotic syndrome from birth.',
-      color: '#2ECC71', points: 20, spawnRate: 0.6, movement: 'float',
-    },
-    {
-      name: 'NPHS2', geneName: 'Podocin',
-      geneDescription: 'Anchors the nephrin filter in place. Mutations cause steroid-resistant nephrotic syndrome in children.',
-      color: '#F1C40F', points: 20, spawnRate: 0.6, movement: 'float',
-    },
-    {
-      name: 'WT1', geneName: 'Wilms Tumor Protein 1',
-      geneDescription: 'Controls kidney development. Mutations cause Wilms tumor (kidney cancer) and nephrotic syndrome.',
-      color: '#9B59B6', points: 25, spawnRate: 0.4, movement: 'float',
+      name: 'NPHS1',
+      color: '#FF9800',
+      points: 20,
+      width: 30,
+      height: 30,
+      diseaseName: 'Congenital Nephrotic Syndrome (Finnish type)',
+      description: 'Encodes Nephrin, the structural protein of the slit diaphragm. Loss of function causes massive protein leakage from birth.',
+      inheritance: 'Autosomal recessive (both copies must be mutated)',
+      omimId: '256300',
+      omimUrl: 'https://omim.org/entry/256300',
+      geneReviewsUrl: 'https://www.ncbi.nlm.nih.gov/books/NBK1484/',
     },
   ],
 
@@ -167,4 +176,19 @@ export default {
 
   // -- Game over overlay (Phase 4) --
   GAME_OVER_OVERLAY_ALPHA: 0.72,     // overlay darkness
+
+  // -- Collectible spawning (Phase 5) --
+  COLLECTIBLE_SPAWN_BASE_INTERVAL: 3.5,   // seconds between gene spawns
+  COLLECTIBLE_SPAWN_VARIATION: 1.5,       // +/- seconds of randomness (yields 2-5s intervals)
+  COLLECTIBLE_FLOAT_AMPLITUDE: 8,         // px half peak-to-peak float
+  COLLECTIBLE_FLOAT_FREQ: 2.0,            // Hz (cycles per second)
+
+  // -- Risk-reward spawning (Phase 5) --
+  RISK_SPAWN_PROBABILITY: 0.25,           // 25% chance a gene spawns within 1s of an obstacle
+
+  // -- Restart (Phase 5) --
+  RESTART_COOLDOWN: 1.5,                  // seconds before Space is accepted on game over screen
+
+  // -- Gene name flash (Phase 5) --
+  GENE_LABEL_FLASH_DURATION: 1.0,         // seconds the gene name appears near HUD on pickup
 };
