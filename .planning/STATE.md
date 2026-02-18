@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Core value:** Playable, fun, and simple enough for workshop participants to understand and modify
-**Current focus:** Phase 5 (Collectibles + Scoring) -- Plan 1 of 2 complete
+**Current focus:** Phase 6 (Visual Polish) -- Ready to begin
 
 ## Current Position
 
-Phase: 5 of 6 (Collectibles + Scoring) -- In progress
-Plan: 1 of 2 in phase (05-01 complete)
-Status: In progress
-Last activity: 2026-02-18 -- Completed 05-01-PLAN.md (gene collectibles + difficulty ramp)
+Phase: 6 of 6 (Visual Polish) -- Not started
+Plan: 0 of 5 in phase
+Status: Ready to plan
+Last activity: 2026-02-18 -- Implemented stomp mechanic + obstacle HP + spawn safety fixes
 
-Progress: [███████░░░] ~75%
+Progress: [████████░░] ~83%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9 (01-01, 01-02, 02-01, 02-02, 03-01, 03-02, 04-01, 04-02, 05-01)
+- Total plans completed: 10 (01-01, 01-02, 02-01, 02-02, 03-01, 03-02, 04-01, 04-02, 05-01, 05-02)
 - Average duration: ~22 min
-- Total execution time: ~3.3 hours
+- Total execution time: ~3.7 hours
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [███████░░░] ~75%
 | 02-player-physics | 2 | ~55 min | ~28 min |
 | 03-game-loop-scrolling | 2/2 | ~40 min | ~20 min |
 | 04-obstacles-collision | 2/2 | ~54 min | ~27 min |
-| 05-collectibles-scoring | 1 (of 2) | ~22 min | ~22 min |
+| 05-collectibles-scoring | 2/2 | ~44 min | ~22 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-02, 04-01, 04-02, 05-01
+- Last 5 plans: 04-01, 04-02, 05-01, 05-02
 - Trend: Stable (~20-27 min per plan)
 
 *Updated after each plan completion*
@@ -93,6 +93,17 @@ Recent decisions affecting current work:
 - [05-01]: currentSpeed as single module-level variable -- all movement (ground, obstacles, genes, distance) uses it for uniform difficulty scaling
 - [05-01]: gene.y = gene.baseY + sin(floatPhase) * AMP -- absolute position, not additive delta, prevents float drift
 - [05-01]: Genes drawn after obstacles and before player in all rendering states
+- [05-02]: Educational game over screen with gene cards showing disease name, inheritance, description, and OMIM ID
+- [05-02]: localStorage high score persistence with loadHighScore/saveHighScore helpers
+- [05-02]: Floating popup particles (+points) on gene collection with upward drift and alpha fade
+- [05-02]: Gene name flash near HUD on collection (1s duration, alpha fade)
+- [05-02]: RESTART_COOLDOWN of 1.5s prevents accidental restarts
+- [Stomp]: Stomp mechanic -- landing on obstacles while falling damages/destroys them (STOMP_THRESHOLD=16px)
+- [Stomp]: Obstacle HP system -- kidney-stone/toxin=1hp, salt-crystal=2hp (needs 2 stomps)
+- [Stomp]: Stomp bounce (STOMP_BOUNCE_VELOCITY=-450) restores 1 jump charge -- enables chain stomps
+- [Stomp]: Dynamic cluster gap: max(CLUSTER_GAP, CLUSTER_GAP_MIN_TIME * currentSpeed) -- scales with speed
+- [Stomp]: Cluster members forced to match lead obstacle placement type -- prevents impossible floating+ground combos
+- [Stomp]: Post-spawn filter removes floating obstacles too close to ground obstacles
 
 ### Pending Todos
 
@@ -105,5 +116,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 05-01-PLAN.md (gene collectibles + difficulty ramp)
+Stopped at: Implemented stomp mechanic, obstacle HP, spawn safety. Phase 5 complete. Phase 6 ready to begin.
 Resume file: None

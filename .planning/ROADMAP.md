@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Player + Physics** - Chibi zebra player with gravity-based jump mechanics
 - [x] **Phase 3: Game Loop + Scrolling** - State machine, render loop, and scrolling ground
 - [x] **Phase 4: Obstacles + Collision** - Obstacle spawning, AABB collision, and game over state
-- [ ] **Phase 5: Collectibles + Scoring** - Gene pickups, score display, difficulty ramp, and restart
+- [x] **Phase 5: Collectibles + Scoring** - Gene pickups, score display, difficulty ramp, and restart
 - [ ] **Phase 6: Visual Polish** - Sprites, parallax backgrounds, branding, and themed art
 
 ## Phase Details
@@ -93,8 +93,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md -- Config expansion (gene educational data, spawn/difficulty params) and gene spawning/collection/difficulty ramp
-- [ ] 05-02-PLAN.md -- Live HUD, collection feedback (popups + flash), educational game over screen, localStorage high score, restart
+- [x] 05-01-PLAN.md -- Config expansion (gene educational data, spawn/difficulty params) and gene spawning/collection/difficulty ramp
+- [x] 05-02-PLAN.md -- Live HUD, collection feedback (popups + flash), educational game over screen, localStorage high score, restart
 
 ### Phase 6: Visual Polish
 **Goal**: The game replaces colored rectangles with real zebra sprites, kidney-themed art, parallax backgrounds, and KidneyQuest branding (CeRKiD branding overridden per CONTEXT.md)
@@ -126,5 +126,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Player + Physics | 2/2 | Complete | 2026-02-18 |
 | 3. Game Loop + Scrolling | 2/2 | Complete | 2026-02-18 |
 | 4. Obstacles + Collision | 2/2 | Complete | 2026-02-18 |
-| 5. Collectibles + Scoring | 0/2 | Planned | - |
+| 5. Collectibles + Scoring | 2/2 | Complete | 2026-02-18 |
 | 6. Visual Polish | 0/5 | Planned | - |
