@@ -1,12 +1,13 @@
 // main.js -- KidneyQuest module entry point
-// Wires config, input, and renderer into a working game loop.
+// Wires config, input, renderer, and player physics into a working game loop.
 
 import CONFIG from './config.js';
-import { setupCanvas, resizeCanvas, clearCanvas, drawText, drawGroundLine } from './renderer.js';
+import { setupCanvas, resizeCanvas, clearCanvas, drawText, drawGroundLine, drawPlayer } from './renderer.js';
 import { setupInput } from './input.js';
+import { createPlayer, updatePlayer, handleJumpPress, handleJumpRelease } from './player.js';
 
 // Expose CONFIG globally so workshop participants can inspect and mutate values
-// in the browser console, e.g. CONFIG.GROUND_COLOR = '#ff0000'
+// in the browser console, e.g. CONFIG.GRAVITY = 2200
 window.CONFIG = CONFIG;
 console.log('KidneyQuest v1.0 -- CONFIG available in console');
 
@@ -22,30 +23,84 @@ resizeCanvas(canvas, CONFIG);
 window.addEventListener('resize', () => resizeCanvas(canvas, CONFIG));
 
 // ---------------------------------------------------------------------------
+// Player
+// ---------------------------------------------------------------------------
+
+const player = createPlayer(CONFIG);
+
+// ---------------------------------------------------------------------------
 // Game state
 // ---------------------------------------------------------------------------
 
 // Simple string state machine.
-// Phase 1: READY <-> RUNNING (RUNNING is a blank canvas with ground line)
-// Phase 2+: RUNNING gains player physics; GAME_OVER added later
+// READY: start screen shown, waiting for first Space press
+// RUNNING: game active, player physics running
+// GAME_OVER: end screen (Phase 5+)
 let gameState = 'READY';
 
 // ---------------------------------------------------------------------------
-// Input
+// Input -- action callbacks
 // ---------------------------------------------------------------------------
 
 function handleAction() {
   if (gameState === 'READY') {
     gameState = 'RUNNING';
     console.log('Game started!');
+    // Note: first Space press starts the game; it does NOT also trigger a jump.
+    // Subsequent Space presses during RUNNING call handleJumpPress below.
+  } else if (gameState === 'RUNNING') {
+    handleJumpPress(player);
   } else if (gameState === 'GAME_OVER') {
-    // Restart -- handled in Phase 5; reset to READY for now
+    // Restart: reset player state and return to READY
+    Object.assign(player, createPlayer(CONFIG));
     gameState = 'READY';
   }
-  // gameState === 'RUNNING': no-op in Phase 1 (Phase 2 adds jump)
 }
 
-setupInput(canvas, handleAction);
+function handleActionRelease() {
+  if (gameState === 'RUNNING') {
+    handleJumpRelease(player);
+  }
+}
+
+setupInput(canvas, handleAction, handleActionRelease);
+
+// ---------------------------------------------------------------------------
+// Horizontal movement -- ArrowLeft / ArrowRight
+// Mobile gets jump via tap only (CONTEXT.md decision); no on-screen D-pad in Phase 2.
+// ---------------------------------------------------------------------------
+
+/**
+ * Adds ArrowLeft and ArrowRight keydown/keyup listeners to set player.velocityX.
+ * Keeps input.js focused on the action callback pattern.
+ *
+ * @param {HTMLCanvasElement} canvas
+ * @param {Object} player
+ * @param {Object} config
+ */
+function setupMovement(canvas, player, config) {
+  canvas.addEventListener('keydown', (e) => {
+    if (e.code === 'ArrowLeft') {
+      e.preventDefault();
+      player.velocityX = -config.PLAYER_MOVE_SPEED;
+    } else if (e.code === 'ArrowRight') {
+      e.preventDefault();
+      player.velocityX = config.PLAYER_MOVE_SPEED;
+    }
+  });
+
+  canvas.addEventListener('keyup', (e) => {
+    if (e.code === 'ArrowLeft') {
+      // Only stop if currently moving left (avoid cancelling a right-movement keyup)
+      if (player.velocityX < 0) player.velocityX = 0;
+    } else if (e.code === 'ArrowRight') {
+      // Only stop if currently moving right
+      if (player.velocityX > 0) player.velocityX = 0;
+    }
+  });
+}
+
+setupMovement(canvas, player, CONFIG);
 
 // ---------------------------------------------------------------------------
 // Start screen renderer
@@ -99,13 +154,11 @@ function gameLoop(timestamp) {
   }
 
   if (gameState === 'RUNNING') {
-    // Phase 2 adds player rendering and physics using deltaTime.
-    // Placeholder text so the running state isn't visually blank.
-    drawText(ctx, 'Game Running...', CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT * 0.45, {
-      font: '24px sans-serif',
-      color: CONFIG.TEXT_COLOR,
-      alpha: 0.3,
-    });
+    // Advance physics for this frame
+    updatePlayer(player, deltaTime);
+
+    // Render player rectangle with squash/stretch
+    drawPlayer(ctx, player, CONFIG);
   }
 
   requestAnimationFrame(gameLoop);

@@ -96,3 +96,29 @@ export function drawGroundLine(ctx, config) {
   ctx.fillStyle = config.GROUND_LINE_COLOR || '#555577';
   ctx.fillRect(0, config.GROUND_Y, config.CANVAS_WIDTH, config.GROUND_LINE_WIDTH);
 }
+
+/**
+ * Draws the player as a coloured rectangle with squash/stretch transform.
+ * Anchors the transform at the bottom-centre so landing squash pushes down, not up.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Object} player - Player state object
+ * @param {Object} config - Game CONFIG object
+ */
+export function drawPlayer(ctx, player, config) {
+  ctx.save();
+
+  // Translate to the bottom-centre of the player rectangle
+  ctx.translate(player.x + config.PLAYER_WIDTH / 2, player.y + config.PLAYER_HEIGHT);
+
+  // Apply squash/stretch scaling anchored at the bottom-centre
+  ctx.scale(player.squashX, player.squashY);
+
+  // Translate back so fillRect draws from the correct top-left corner
+  ctx.translate(-(config.PLAYER_WIDTH / 2), -config.PLAYER_HEIGHT);
+
+  ctx.fillStyle = config.PLAYER_COLOR;
+  ctx.fillRect(0, 0, config.PLAYER_WIDTH, config.PLAYER_HEIGHT);
+
+  ctx.restore();
+}
