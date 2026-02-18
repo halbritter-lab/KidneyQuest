@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Core value:** Playable, fun, and simple enough for workshop participants to understand and modify
-**Current focus:** Phase 4 (Obstacles + Collision) -- Plan 1 of 2 complete
+**Current focus:** Phase 4 (Obstacles + Collision) -- Plan 2 of 2 awaiting checkpoint approval
 
 ## Current Position
 
 Phase: 4 of 6 (Obstacles + Collision) -- In progress
-Plan: 1 of 2 in phase (04-01 complete)
-Status: In progress
-Last activity: 2026-02-18 -- Completed 04-01-PLAN.md (obstacle types config + spawn system)
+Plan: 2 of 2 in phase (04-02 at checkpoint, awaiting human verification)
+Status: At checkpoint
+Last activity: 2026-02-18 -- Completed task 1 of 04-02-PLAN.md (collision + death animation)
 
-Progress: [██████░░░░] ~58%
+Progress: [██████░░░░] ~62%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
+- Total plans completed: 6 (04-02 at checkpoint, partial)
 - Average duration: ~21 min
 - Total execution time: ~2.1 hours
 
@@ -79,6 +79,10 @@ Recent decisions affecting current work:
 - [04-01]: spawnTimer -= spawnInterval (not = 0) -- preserves remainder for accurate timing at all frame rates
 - [04-01]: Obstacles drawn after ground, before player -- standard runner convention (player appears in front)
 - [04-01]: drawObstacles called in PAUSED and GAME_OVER states -- obstacles freeze visually in non-running states
+- [04-02]: DYING state draws ground inside drawWithShake callback -- main loop guards with `gameState !== 'DYING'` to prevent double-draw
+- [04-02]: gameOverTimer reset to 0 at DYING->GAME_OVER transition -- cooldown starts when overlay appears, not when collision occurs
+- [04-02]: killerObstacleName passed as parameter to drawGameOver -- renderer remains stateless, consistent with existing pattern
+- [04-02]: nearMissTimer counts down from NEAR_MISS_FLASH_DURATION -- set on detection, decremented each RUNNING frame
 
 ### Pending Todos
 
@@ -91,5 +95,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 04-01-PLAN.md (obstacle types config + spawn system)
+Stopped at: 04-02 checkpoint -- task 1 complete (c739472), awaiting human verification of full Phase 4 gameplay
 Resume file: None
